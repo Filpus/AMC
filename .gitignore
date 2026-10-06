@@ -1,6 +1,7 @@
 # surowe dane z API (odtwarzalne: python src/fetch_sejm.py --term N)
 data/raw/term*/transcripts/
 data/raw/term*/votings/
+data/raw/term*/komisje/
 data/interim/*.parquet
 **/*.tmp
 
