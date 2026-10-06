@@ -1,0 +1,11 @@
+# surowe dane z API (odtwarzalne: python src/fetch_sejm.py --term N)
+data/raw/term*/transcripts/
+data/raw/term*/votings/
+data/raw/term*/komisje/
+data/interim/*.parquet
+**/*.tmp
+
+__pycache__/
+.ipynb_checkpoints/
+# korpus gotowy do analizy (odtwarzalny: python src/build_corpus.py)
+data/processed/*.parquet

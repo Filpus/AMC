@@ -13,50 +13,21 @@ Przykłady:
   python src/fetch_sejm.py --term 10 --steps build         # tylko przebudowa parquet
 """
 import argparse
-import html
 import json
 import logging
-import re
-import time
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
 
 import pandas as pd
-import requests
 
-ROOT = Path(__file__).resolve().parents[1]
-RAW = ROOT / "data" / "raw"
-INTERIM = ROOT / "data" / "interim"
-API = "https://api.sejm.gov.pl/sejm/term{term}"
+from amc import http, speakers, text
+from amc.http import write_json
+from amc.paths import API, INTERIM, RAW
 
 log = logging.getLogger("fetch_sejm")
-session = requests.Session()
-session.headers["User-Agent"] = "AMC-research (projekt studencki, analiza wypowiedzi)"
 
 
-# ---------- HTTP ----------
-
-def get(url, as_json=True, tries=5, timeout=60):
-    """GET z ponawianiem (backoff wykładniczy). Zwraca None po wyczerpaniu prób albo przy 404."""
-    for i in range(tries):
-        try:
-            r = session.get(url, timeout=timeout)
-            if r.status_code == 404:
-                return None
-            r.raise_for_status()
-            return r.json() if as_json else r.text
-        except requests.RequestException as e:
-            if i == tries - 1:
-                log.warning("nie udało się pobrać %s: %s", url, e)
-                return None
-            time.sleep(2 ** i)
-
-
-def write_json(path, obj):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(json.dumps(obj, ensure_ascii=False), encoding="utf-8")
-    tmp.replace(path)  # zapis atomowy: przerwane pobranie nie zostawia połówki pliku
+def get(url, as_json=True):
+    return http.get(url, as_="json" if as_json else "text")
 
 
 # ---------- etapy ----------
@@ -132,11 +103,8 @@ def build_clubs(out, term):
     if not obs:
         log.warning("brak głosowań, pomijam historię klubów")
         return None
-    df = pd.DataFrame(obs).sort_values(["member_id", "data"])
-    df["zmiana"] = (df["klub"] != df.groupby("member_id")["klub"].shift()).cumsum()
-    hist = (df.groupby(["member_id", "zmiana", "klub"], as_index=False)
-              .agg(od=("data", "min"), do=("data", "max"))
-              .drop(columns="zmiana"))
+    df = pd.DataFrame(obs)
+    hist = speakers.club_history(df)
     path = INTERIM / f"posel_klub_term{term}.csv"
     path.parent.mkdir(parents=True, exist_ok=True)
     hist.to_csv(path, index=False)
@@ -145,26 +113,14 @@ def build_clubs(out, term):
     return df[["member_id", "klub", "data"]]
 
 
-HEADER = re.compile(r"^.*?punkt porządku dziennego:.*?\(druk[^)]*\)\.?\s*", re.S)
-
-
-def html_to_text(h):
-    if not h:
-        return ""
-    t = re.sub(r"<(br|/p|/div|/h\d)[^>]*>", "\n", h, flags=re.I)
-    t = html.unescape(re.sub(r"<[^>]+>", " ", t))
-    t = re.sub(r"[ \t\xa0]+", " ", t)
-    return re.sub(r"\s*\n\s*", "\n", t).strip()
-
-
 def build_table(out, term, club_obs):
     rows = [json.loads(l) for f in sorted((out / "transcripts").glob("*.jsonl"))
             for l in f.read_text(encoding="utf-8").splitlines() if l.strip()]
     df = pd.DataFrame(rows)
-    df["tekst"] = df["html"].map(html_to_text)
+    df["tekst"] = df["html"].map(text.html_to_text)
     # nagłówek wypowiedzi (kadencja, posiedzenie, punkt porządku, nazwy komisji) zaśmieca filtr słownikowy
-    df["tekst"] = df["tekst"].str.replace(HEADER, "", n=1, regex=True)
-    df["liczba_slow"] = df["tekst"].str.split().str.len().fillna(0).astype(int)
+    df["tekst"] = df["tekst"].str.replace(text.HEADER_PLENARNY, "", n=1, regex=True)
+    df["liczba_slow"] = text.word_count(df["tekst"])
     df["wypowiedz_id"] = f"{term}_" + df["posiedzenie"].astype(str) + "_" + df["data"] + "_" + df["num"].astype(str)
     df = df.rename(columns={"name": "mowca", "memberID": "member_id", "function": "funkcja",
                             "startDateTime": "start", "endDateTime": "koniec", "unspoken": "niewygloszona"})
@@ -174,14 +130,7 @@ def build_table(out, term, club_obs):
     df["klub_dzis"] = df["member_id"].map(mps)
 
     # klub w dniu wypowiedzi = klub z ostatniego głosowania nie później niż ta data (a przed pierwszym: z pierwszego)
-    df["klub"] = None
-    if club_obs is not None:
-        obs = club_obs.assign(data=pd.to_datetime(club_obs["data"])).sort_values("data")
-        posl = df[df["member_id"] > 0].assign(_d=lambda x: pd.to_datetime(x["data"])).sort_values("_d")
-        back = pd.merge_asof(posl, obs.rename(columns={"data": "_d", "klub": "k"}), on="_d", by="member_id", direction="backward")
-        fwd = pd.merge_asof(posl, obs.rename(columns={"data": "_d", "klub": "k"}), on="_d", by="member_id", direction="forward")
-        back.index, fwd.index = posl.index, posl.index
-        df.loc[posl.index, "klub"] = back["k"].fillna(fwd["k"])
+    df["klub"] = speakers.club_on_date(df, club_obs) if club_obs is not None else None
     df["klub"] = df["klub"].fillna(df["klub_dzis"])  # fallback, np. posłowie bez żadnego głosowania
 
     cols = ["wypowiedz_id", "kadencja", "posiedzenie", "data", "num", "start", "koniec", "mowca", "member_id",
