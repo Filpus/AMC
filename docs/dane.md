@@ -99,7 +99,7 @@ Tylko w `korpus_komisje`: `komisja` (kod), `komisje` (wszystkie kody, gdy posied
 
 ## Decyzje i ograniczenia — przeczytaj przed analizą
 
-1. **Słowniki to filtr, nie klasyfikacja.** Trafienie „sceptycyzm” oznacza użycie zwrotu, nie stanowisko —
+1. **Słowniki to filtr, nie klasyfikacja** (jak powstały: [slowniki.md](slowniki.md)). Trafienie „sceptycyzm” oznacza użycie zwrotu, nie stanowisko —
    część to cytowanie lub polemika („to nie jest sanitaryzm”). Precyzja i czułość słowników nie są jeszcze zmierzone.
 2. **Klub na dzień wypowiedzi** pochodzi z głosowań; przed pierwszym głosowaniem posła bierzemy pierwszy znany klub.
    `klub_dzis` (stan na dzień pobrania) służy tylko jako zapas.

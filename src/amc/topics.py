@@ -5,6 +5,7 @@ Wzorce zaczynają się od granicy słowa (\\b) i kończą rdzeniem + \\w*, żeby
 (szczepionka, szczepionki, szczepionkami...). Słowniki są celowo nastawione na precyzję, nie
 na pełność: lepiej przegapić część wypowiedzi niż zalać się fałszywymi trafieniami.
 Przykłady trafień do ręcznej weryfikacji są w notatniku notebooks/01_eda_wypowiedzi.ipynb.
+Jak powstały słowniki, na czym się opierają i jakie mają ograniczenia: docs/slowniki.md.
 
 Progi:
   wzmianka              >= 1 trafienie słownika tematu

@@ -4,6 +4,7 @@ Analiza wypowiedzi w Sejmie RP (posiedzenia plenarne i komisje, kadencje VIII–
 lub sprzeczności z konsensusem naukowym (zdrowie: szczepienia i COVID-19; klimat).
 
 **Dokumentacja danych** (pliki, kolumny, decyzje i ograniczenia): [docs/dane.md](docs/dane.md).
+**Jak powstały słowniki tematyczne i markery:** [docs/slowniki.md](docs/slowniki.md).
 
 ## Pipeline
 
