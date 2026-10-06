@@ -7,3 +7,5 @@ data/interim/*.parquet
 
 __pycache__/
 .ipynb_checkpoints/
+# korpus gotowy do analizy (odtwarzalny: python src/build_corpus.py)
+data/processed/*.parquet

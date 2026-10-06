@@ -5,8 +5,18 @@ Wzorce zaczynają się od granicy słowa (\\b) i kończą rdzeniem + \\w*, żeby
 (szczepionka, szczepionki, szczepionkami...). Słowniki są celowo nastawione na precyzję, nie
 na pełność: lepiej przegapić część wypowiedzi niż zalać się fałszywymi trafieniami.
 Przykłady trafień do ręcznej weryfikacji są w notatniku notebooks/01_eda_wypowiedzi.ipynb.
+
+Progi:
+  wzmianka              >= 1 trafienie słownika tematu
+  wypowiedź tematyczna  >= PROG trafień (temat jest wyraźnym wątkiem, a nie przelotnym odniesieniem)
 """
 import re
+
+import pandas as pd
+
+PROG = 3
+# tematy zbiorcze: nazwa -> tematy składowe
+GRUPY = {"zdrowie": ["szczepienia", "covid"]}
 
 # Tematy, w których istnieje wyraźny konsensus naukowy (kandydaci na oś projektu).
 TOPICS = {
@@ -49,7 +59,7 @@ TOPICS = {
 SCIENCE_REFS = [
     r"\bnaukowc\w*", r"\bnaukow\w* dowod\w*", r"\bdowod\w* naukow\w*", r"\bbada\w* naukow\w*",
     r"\bbadania (wykazały|pokazują|dowodzą|potwierdzają)", r"\bkonsensus\w* naukow\w*",
-    r"\bświat\w* nauki\b", r"\bwedług (naukowców|ekspertów|badań)"
+    r"\bświat\w* nauki\b", r"\bwedług (naukowców|ekspertów|badań)",
     r"\bwho\b", r"\bświatow\w* organizacj\w* zdrowia\b", r"\bpolsk\w* akademi\w* nauk\b",
 ]
 # "PAN" (Polska Akademia Nauk) koliduje ze zwrotem "pan" — dlatego łapiemy tylko wersalikami, na oryginalnym tekście.
@@ -78,10 +88,22 @@ SKEPTIC_RE = _compile(SKEPTIC)
 
 
 def flag_topics(texts):
-    """Zwraca DataFrame z liczbą trafień każdego tematu dla serii tekstów."""
-    import pandas as pd
+    """Liczba trafień każdego tematu oraz markerów `nauka` i `sceptycyzm` dla serii tekstów."""
     low = texts.fillna("").str.lower()
     out = {k: low.str.count(r) for k, r in TOPIC_RE.items()}
     out["nauka"] = low.str.count(SCIENCE_RE) + texts.fillna("").str.count(SCIENCE_CASED_RE)
     out["sceptycyzm"] = low.str.count(SKEPTIC_RE)
     return pd.DataFrame(out, index=texts.index)
+
+
+def add_topic_columns(df, text_col="tekst"):
+    """Dokłada do df kolumny z liczbą trafień (<temat>, nauka, sceptycyzm), flagi wypowiedzi tematycznych
+    (<temat>_tem: >= PROG trafień), tematy zbiorcze z GRUPY (<grupa>_tem, <grupa>_wzm) i dowolny_tem."""
+    df = df.join(flag_topics(df[text_col]))
+    for t in TOPICS:
+        df[f"{t}_tem"] = df[t] >= PROG
+    for g, sklad in GRUPY.items():
+        df[f"{g}_tem"] = df[[f"{t}_tem" for t in sklad]].any(axis=1)
+        df[f"{g}_wzm"] = (df[sklad] > 0).any(axis=1)
+    df["dowolny_tem"] = df[[f"{t}_tem" for t in TOPICS]].any(axis=1)
+    return df

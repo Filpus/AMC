@@ -1,0 +1,39 @@
+<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wypowiedzi z markerem sceptycyzmu</title>
+<style>
+:root{--bg:#f9f9f7;--card:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--line:#e1e0d9;--mark:#fde7c8;--accent:#2a78d6;--chip:#eef3fb}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d0d0d;--card:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;--line:#2c2c2a;--mark:#5a3d12;--accent:#3987e5;--chip:#1f2a3a}}
+:root[data-theme="dark"]{--bg:#0d0d0d;--card:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;--line:#2c2c2a;--mark:#5a3d12;--accent:#3987e5;--chip:#1f2a3a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:920px;margin:0 auto;padding:28px 16px 60px}h1{font-size:22px;margin:0 0 6px}
+.lead{color:var(--ink2);margin:0 0 18px}.note{border-left:3px solid var(--accent);padding:8px 12px;background:var(--card);color:var(--ink2);font-size:14px;margin-bottom:18px}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink)}
+.count{color:var(--muted);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;margin-bottom:6px}.who{font-weight:600}.club{color:var(--ink2)}.date{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;background:var(--chip);color:var(--ink2);margin-right:4px}
+blockquote{margin:8px 0 0;color:var(--ink2);font-size:14px}mark{background:var(--mark);color:var(--ink);padding:0 2px;border-radius:3px;font-weight:600}
+.id{color:var(--muted);font-size:12px;margin-top:6px}
+</style></head><body><main>
+<h1>Wypowiedzi tematyczne ze zwrotem podważającym</h1>
+<p class="lead">Kadencje VIII–X Sejmu. Wypowiedzi z co najmniej 3 trafieniami słownika tematu, zawierające co najmniej jeden zwrot ze słownika „sceptycyzm” (<code>src/amc/topics.py</code>). Pokazano do 3 fragmentów na wypowiedź; zwroty wyróżnione.</p>
+<div class="note">Marker to <b>zwrot</b>, nie stanowisko. Część trafień to cytowanie lub krytyka cudzych słów (np. posłanka KO przytacza wypowiedź o „eksperymencie medycznym”, żeby się z nią nie zgodzić). Lista wymaga ręcznej oceny.</div>
+<div class="filters"><label>Temat <select id="ft"><option value="">wszystkie</option></select></label>
+<label>Klub <select id="fk"><option value="">wszystkie</option></select></label><span class="count" id="cnt"></span></div>
+<div id="list"></div></main>
+<script>
+const R=__DATA__;
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ft=document.getElementById("ft"),fk=document.getElementById("fk");
+[...new Set(R.flatMap(r=>r.tematy))].sort().forEach(t=>ft.add(new Option(t,t)));
+const kc={};R.forEach(r=>kc[r.klub]=(kc[r.klub]||0)+1);
+Object.entries(kc).sort((a,b)=>b[1]-a[1]).forEach(([k,n])=>fk.add(new Option(`${k} (${n})`,k)));
+function draw(){const t=ft.value,k=fk.value;const rs=R.filter(r=>(!t||r.tematy.includes(t))&&(!k||r.klub===k));
+document.getElementById("cnt").textContent=`${rs.length} z ${R.length} wypowiedzi`;
+document.getElementById("list").innerHTML=rs.map(r=>`<article class="card"><div class="meta"><span class="who">${esc(r.mowca)}</span><span class="club">${esc(r.klub)}</span><span class="date">${r.data} · ${r.kadencja}. kadencja · ${r.slowa} słów</span></div>
+<div>${r.tematy.map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div>
+${r.fr.map(f=>`<blockquote>${f.map(([x,m])=>m?`<mark>${esc(x)}</mark>`:esc(x)).join("")}</blockquote>`).join("")}
+<div class="id">${r.id}</div></article>`).join("");}
+ft.onchange=fk.onchange=draw;draw();
+</script></body></html>

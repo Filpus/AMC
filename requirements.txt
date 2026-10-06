@@ -4,3 +4,4 @@ requests>=2.31
 matplotlib>=3.8
 jupyter
 nbconvert
+pytest>=8
