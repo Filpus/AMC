@@ -90,9 +90,11 @@ SKEPTIC_RE = _compile(SKEPTIC)
 
 def flag_topics(texts):
     """Liczba trafień każdego tematu oraz markerów `nauka` i `sceptycyzm` dla serii tekstów."""
-    low = texts.fillna("").str.lower()
+    # object dtype: pyarrow strings use RE2, where \w is ASCII-only and misses Polish inflection (zmianą, energią)
+    texts = texts.fillna("").astype(object)
+    low = texts.str.lower()
     out = {k: low.str.count(r) for k, r in TOPIC_RE.items()}
-    out["nauka"] = low.str.count(SCIENCE_RE) + texts.fillna("").str.count(SCIENCE_CASED_RE)
+    out["nauka"] = low.str.count(SCIENCE_RE) + texts.str.count(SCIENCE_CASED_RE)
     out["sceptycyzm"] = low.str.count(SKEPTIC_RE)
     return pd.DataFrame(out, index=texts.index)
 
