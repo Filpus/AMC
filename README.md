@@ -42,6 +42,7 @@ Cała logika jest w pakiecie `src/amc/`; skrypty w `src/` to cienkie nakładki C
 | `amc/komisje.py` | podział zapisu posiedzenia komisji na wypowiedzi (HTML, zapasowo PDF) |
 | `amc/speakers.py` | rola mówcy, dopasowanie posła, klub w dniu wypowiedzi, mapowanie klub → blok |
 | `amc/topics.py` | słowniki tematów, markery `nauka` / `sceptycyzm`, progi, kolumny tematyczne |
+| `amc/sampling.py` | filtr regex (≥ 1 trafienie słownika), okresy H1 (przed COVID / COVID / po ChatGPT), warstwowe losowanie rok × filtr / spoza filtra z wagami N/n |
 | `amc/corpus.py` | budowa i wczytywanie korpusu (filtr wypowiedzi merytorycznych: bez prowadzącego, ≥ 40 słów) |
 | `amc/viz.py` | paleta i styl wykresów |
 
