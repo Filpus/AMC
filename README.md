@@ -46,6 +46,7 @@ Cała logika jest w pakiecie `src/amc/`; skrypty w `src/` to cienkie nakładki C
 | `amc/topics.py` | słowniki tematów, markery `nauka` / `sceptycyzm`, progi, kolumny tematyczne |
 | `amc/sampling.py` | filtr regex (≥ 1 trafienie słownika), okresy H1 (przed COVID / COVID / po ChatGPT), warstwowe losowanie rok × filtr / spoza filtra z wagami N/n |
 | `amc/llm.py` | etap A w Ollamie: krok 1 (kandydaci z rodzajem), krok 2 (weryfikacja kandydatów `naukowe` z kontekstem), wykrywanie przepełnienia kontekstu |
+| `amc/llm_results.py` | wczytanie wyników etapu A z wagami próby i metadanymi korpusu, kandydaci i twierdzenia, estymatory ważone, bootstrap w warstwach roku, kappa (test–retest) |
 | `amc/corpus.py` | budowa i wczytywanie korpusu (filtr wypowiedzi merytorycznych: bez prowadzącego, ≥ 40 słów) |
 | `amc/viz.py` | paleta i styl wykresów |
 
