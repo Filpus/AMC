@@ -1,4 +1,6 @@
 """Tekst wypowiedzi: konwersja HTML -> tekst, czyszczenie, fragmenty z kontekstem."""
+import bisect
+import difflib
 import html
 import re
 
@@ -78,3 +80,48 @@ def highlight_segments(text, rx, window=220, merge=440, max_groups=3):
         seg.append([text[pos:b] + ("…" if b < len(text) else ""), 0])
         frags.append(seg)
     return frags
+
+
+SENTENCE_END = re.compile(r"(?<=[.!?…])\s+")
+
+
+def normalize(text):
+    """Małe litery, bez interpunkcji, pojedyncze spacje (do porównywania cytatów z tekstem)."""
+    return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", text.lower())).strip()
+
+
+def _locate(q, t):
+    """(początek, długość) cytatu q w tekście t (oba znormalizowane); gdy q nie jest dosłowny, najdłuższy wspólny fragment."""
+    i = t.find(q)
+    if i >= 0:
+        return i, len(q)
+    m = difflib.SequenceMatcher(None, t, q, autojunk=False).find_longest_match(0, len(t), 0, len(q))
+    return m.a, m.size
+
+
+def quote_match(quote, text):
+    """Jaka część cytatu występuje w tekście jako jeden ciągły fragment (bez wielkości liter i interpunkcji); 1 = dosłowny."""
+    q = normalize(quote)
+    return _locate(q, normalize(text))[1] / len(q) if q else 0.0
+
+
+def quote_context(text, quote, n=1, max_chars=1500):
+    """Zdania wypowiedzi zawierające cytat, plus n zdań przed i po. Pusty napis, gdy cytatu nie da się odnaleźć."""
+    sents = [s for s in SENTENCE_END.split(text) if s.strip()]
+    norm = [normalize(s) for s in sents]
+    starts = [0]
+    for s in norm[:-1]:
+        starts.append(starts[-1] + len(s) + 1)
+    q = normalize(quote)
+    if not q:
+        return ""
+    pos, size = _locate(q, " ".join(norm))
+    if size < min(30, len(q)):
+        return ""
+    first = bisect.bisect_right(starts, pos) - 1
+    last = bisect.bisect_right(starts, pos + size - 1) - 1
+    for k in (n, 0):
+        ctx = " ".join(sents[max(0, first - k):last + k + 1])
+        if len(ctx) <= max_chars:
+            return ctx
+    return quote
