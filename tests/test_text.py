@@ -2,7 +2,7 @@ import re
 
 import pandas as pd
 
-from amc.text import clean_statement, highlight_segments, html_to_text, kwic, word_count
+from amc.text import clean_statement, highlight_segments, html_to_text, kwic, quote_context, quote_match, word_count
 
 
 def test_html_to_text_paragraphs_and_entities():
@@ -30,3 +30,17 @@ def test_kwic_and_highlight():
     assert kwic("Mówimy o Szczepionkach dziś", rx, w=5) == "…my o **Szczepionkach** dziś"
     frag = highlight_segments("x " * 10 + "szczepionka i szczepionki", rx, window=3, merge=20)
     assert len(frag) == 1 and [t for t, m in frag[0] if m] == ["szczepionka", "szczepionki"]
+
+
+def test_quote_match():
+    text = "Wysoka Izbo! Szczepionki, jak wiadomo, chronią przed odrą. Dziękuję."
+    assert quote_match("szczepionki jak wiadomo chronią przed odrą", text) == 1.0
+    assert quote_match("Szczepionki chronią przed odrą.", text) < 1.0
+    assert quote_match("", text) == 0.0
+
+
+def test_quote_context():
+    text = "Wysoka Izbo! Mamy problem. Smog zabija, bo pyły PM2,5 niszczą płuca. Dlatego składamy poprawkę. Dziękuję."
+    assert quote_context(text, "smog zabija, bo pyły PM2,5 niszczą płuca") ==         "Mamy problem. Smog zabija, bo pyły PM2,5 niszczą płuca. Dlatego składamy poprawkę."
+    assert quote_context(text, "Mamy problem. Smog zabija", n=0) == "Mamy problem. Smog zabija, bo pyły PM2,5 niszczą płuca."
+    assert quote_context(text, "zupełnie inne zdanie o szczepionkach") == ""
