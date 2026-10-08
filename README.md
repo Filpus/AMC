@@ -15,6 +15,7 @@ lub sprzeczności z konsensusem naukowym (zdrowie: szczepienia i COVID-19; klima
 3. analiza      notebooks/01_eda_wypowiedzi.ipynb          (wczytuje korpus: amc.corpus.load)
                 src/report_sceptycyzm.py                   → przegląd wypowiedzi z markerem sceptycyzmu (HTML + CSV)
 4. LLM etap A   src/classify.py                           → data/processed/llm_*.jsonl (Bielik w Ollamie, prompty: prompts/)
+                notebooks/02_llm_etap_a.ipynb              (EDA próby LLM, źródła błędu, plan; wczytuje: amc.llm_results.load)
 ```
 
 Każdy krok można wznowić: pobieranie pomija pliki, które już istnieją.
