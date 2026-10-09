@@ -16,6 +16,7 @@ lub sprzeczności z konsensusem naukowym (zdrowie: szczepienia i COVID-19; klima
                 src/report_sceptycyzm.py                   → przegląd wypowiedzi z markerem sceptycyzmu (HTML + CSV)
 4. LLM etap A   src/classify.py                           → data/processed/llm_*.jsonl (Bielik w Ollamie, prompty: prompts/)
                 notebooks/02_llm_etap_a.ipynb              (EDA próby LLM, źródła błędu, plan; wczytuje: amc.llm_results.load)
+                notebooks/03_llm_etap_a_plenarne.ipynb     (to samo na większej próbie: tylko posiedzenia plenarne, 130 wypowiedzi / rok)
 ```
 
 Każdy krok można wznowić: pobieranie pomija pliki, które już istnieją.
@@ -28,6 +29,7 @@ for t in 8 9 10; do python src/fetch_komisje.py --term $t --committees ZDR OSZ E
 python src/build_corpus.py                                                         # korpus do analizy
 python src/report_sceptycyzm.py                                                    # opcjonalnie
 python src/classify.py --source rok --n 60                                         # etap A na próbie 60 wypowiedzi / rok (Ollama)
+python src/classify.py --source rok --n 130 --plenarne                             # etap A na próbie 130 wypowiedzi plenarnych / rok
 pytest                                                                             # testy jednostkowe
 ```
 

@@ -15,6 +15,9 @@ from . import topics
 
 PERIOD_BREAKS = (pd.Timestamp("2020-01-24"), pd.Timestamp("2022-11-30"))
 PERIODS = ("przed_covid", "covid", "po_chatgpt")
+# hypothesis windows from the exploration card supplement (both ends inclusive)
+WINDOWS = {"A": (pd.Timestamp("2022-04-17"), pd.Timestamp("2023-07-16")),
+           "B": (pd.Timestamp("2023-11-13"), pd.Timestamp("2025-02-17"))}
 DEFAULT_SIZES = {"filtr": 20, "poza": 10}
 
 ANNOTATION_COLS = ["tematy", "zawiera_twierdzenie", "uwagi"]
@@ -29,6 +32,15 @@ def prefilter(df):
 def period(dates):
     d = pd.to_datetime(dates)
     return pd.Series(np.select([d < PERIOD_BREAKS[0], d < PERIOD_BREAKS[1]], PERIODS[:2], PERIODS[2]), index=d.index)
+
+
+def window(dates):
+    """Window label (A / B), missing outside both windows."""
+    d = pd.to_datetime(dates)
+    out = pd.Series(np.nan, index=d.index, dtype=object)
+    for k, (a, b) in WINDOWS.items():
+        out[d.between(a, b)] = k
+    return out
 
 
 def draw(df, sizes=None, seed=0):
