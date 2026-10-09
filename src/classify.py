@@ -4,20 +4,24 @@ Sources:
   gold    data/gold/sample_<version>.csv (run only after manual annotation, to keep it blind)
   filtr   random statements passing the regex prefilter (speed tests)
   rok     --n statements per year from the prefilter (analysis sample, weight = N / n)
-With --bez-filtra, filtr and rok draw from all `merytoryczna` statements instead of the prefilter.
+With --bez-filtra, filtr and rok draw from all `merytoryczna` statements instead of the prefilter; with --plenarne only
+from plenary sittings (no committees).
 
-Output: data/processed/llm_<prompt>_<source>.jsonl, one line per statement. Reruns skip ids done without error and
-retry failed ones (a retried id then has several lines: use the last one). Context overflow counts as an error.
+Output: data/processed/llm_<prompt>_<source>[_plenarne][_bez_filtra].jsonl, one line per statement. Reruns skip ids
+done without error and retry failed ones (a retried id then has several lines: use the last one). Context overflow
+counts as an error.
   --ponow        also rerun ids whose last line overflowed the context or filled a candidate limit lower than the current one
   --weryfikacja  only step 2 again (current verification prompt, with context) on stored candidates; appends updated lines
   --powtorka N   test-retest: N random done statements classified again into llm_<prompt>_<source>_powtorka.jsonl
-For --source rok the sample (ids, year, weight) is also saved to llm_<prompt>_rok_n<N>_proba.csv. Samples for different
---n are nested (n=60 is a subset of n=100), so results stay valid; the analysis takes ids and weights from that file.
+For --source rok the sample (ids, year, weight) is also saved next to the output as <output>_n<N>_proba.csv. Samples
+for different --n are nested (n=60 is a subset of n=100), so results stay valid; the analysis takes ids and weights from
+that file. Statements are processed interleaved by year, so a run stopped early still covers every year.
 
 Example:
   python src/classify.py --source filtr --n 10
   python src/classify.py --source rok --n 100
   python src/classify.py --source rok --n 100 --bez-filtra
+  python src/classify.py --source rok --n 80 --plenarne
   python src/classify.py --source gold --version v1
   python src/classify.py --source rok --n 60 --ponow
   python src/classify.py --source rok --n 60 --weryfikacja
@@ -37,16 +41,19 @@ from amc.paths import PROCESSED, ROOT
 log = logging.getLogger("classify")
 
 
-def statements(source, n, seed, version, use_prefilter=True):
+def statements(source, n, seed, version, use_prefilter=True, kinds=corpus.RODZAJE):
     if source == "gold":
         return pd.read_csv(ROOT / "data" / "gold" / f"sample_{version}.csv", encoding="utf-8-sig")[["wypowiedz_id", "tekst"]]
-    df = pd.concat([corpus.load(k) for k in corpus.RODZAJE], ignore_index=True)
+    df = pd.concat([corpus.load(k) for k in kinds], ignore_index=True)
     df = df[df["merytoryczna"] & (sampling.prefilter(df) if use_prefilter else True)]
     if source == "filtr":
         return df.sample(n=min(n, len(df)), random_state=seed)[["wypowiedz_id", "tekst"]]
     df["rok"] = pd.to_datetime(df["data"]).dt.year
     size = df.groupby("rok").size()
-    out = df.sample(frac=1, random_state=seed).groupby("rok").head(n).sort_values(["rok", "data"])
+    out = df.sample(frac=1, random_state=seed)
+    out["_nr"] = out.groupby("rok").cumcount()
+    # interleaved by year, so a run stopped early is still a sample from every year
+    out = out[out["_nr"] < n].sort_values(["_nr", "rok"])
     out["waga"] = out["rok"].map(size / out.groupby("rok").size())
     return out[["wypowiedz_id", "tekst", "rok", "waga"]]
 
@@ -89,6 +96,7 @@ def main():
     ap.add_argument("--prompt", default="etap_a_v2")
     ap.add_argument("--model", default=llm.DEFAULT_MODEL)
     ap.add_argument("--bez-filtra", action="store_true", help="sample from all statements, not only the regex prefilter")
+    ap.add_argument("--plenarne", action="store_true", help="sample only plenary statements (no committees)")
     ap.add_argument("--max-kandydatow", type=int, default=llm.MAX_CANDIDATES)
     ap.add_argument("--ponow", action="store_true", help="also rerun overflowed statements and those with a full candidate list")
     ap.add_argument("--weryfikacja", action="store_true", help="only step 2 again on stored candidates")
@@ -96,9 +104,10 @@ def main():
     a = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S")
 
-    out = PROCESSED / f"llm_{a.prompt}_{a.source}{'_bez_filtra' if a.bez_filtra else ''}.jsonl"
+    suffix = ("_plenarne" if a.plenarne else "") + ("_bez_filtra" if a.bez_filtra else "")
+    out = PROCESSED / f"llm_{a.prompt}_{a.source}{suffix}.jsonl"
     last = last_lines(out)
-    todo = statements(a.source, a.n, a.seed, a.version, not a.bez_filtra)
+    todo = statements(a.source, a.n, a.seed, a.version, not a.bez_filtra, ["plenarne"] if a.plenarne else corpus.RODZAJE)
     if a.source == "rok":
         todo[["wypowiedz_id", "rok", "waga"]].to_csv(out.with_name(f"{out.stem}_n{a.n}_proba.csv"), index=False)
     if a.weryfikacja:
