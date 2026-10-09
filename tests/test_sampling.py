@@ -16,6 +16,12 @@ def test_prefilter_and_periods():
     assert sampling.period(df["data"]).tolist() == ["przed_covid", "covid", "po_chatgpt", "po_chatgpt"]
 
 
+def test_window_bounds_inclusive():
+    dates = pd.Series(pd.to_datetime(["2022-04-16", "2022-04-17", "2023-07-16", "2023-07-17", "2023-11-13", "2025-02-17",
+                                      "2025-02-18"]))
+    assert sampling.window(dates).fillna("-").tolist() == ["-", "A", "A", "-", "B", "B", "-"]
+
+
 def test_draw_sizes_weights_and_merytoryczna():
     df = corpus(["budżet"] * 10 + ["szczepionka"] * 4, ["2019-01-01"] * 10 + ["2021-01-01"] * 4)
     df.loc[0, "merytoryczna"] = False
