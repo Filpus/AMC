@@ -44,3 +44,15 @@ def test_quote_context():
     assert quote_context(text, "smog zabija, bo pyły PM2,5 niszczą płuca") ==         "Mamy problem. Smog zabija, bo pyły PM2,5 niszczą płuca. Dlatego składamy poprawkę."
     assert quote_context(text, "Mamy problem. Smog zabija", n=0) == "Mamy problem. Smog zabija, bo pyły PM2,5 niszczą płuca."
     assert quote_context(text, "zupełnie inne zdanie o szczepionkach") == ""
+
+
+def test_mask_speakers_labels_and_header():
+    from amc.text import mask_speakers
+    tekst = ("10. kadencja, 1. posiedzenie, 5. dzień - Poseł Jan Kowalski \nOświadczenia.\nPoseł Jan Kowalski :\n"
+             "Wysoka Izbo!\nWicemarszałek Piotr Zgorzelski:\nProszę o spokój.\nPoseł Szymon Szynkowski vel Sęk:\n"
+             "Sekretarz stanu w Ministerstwie Obrony Narodowej Cezary Tomczyk:\n"
+             "Minister Rodziny, Pracy i Polityki Społecznej Agnieszka Dziemianowicz-Bąk:\n"
+             "Minister kultury miał dwa scenariusze. Pierwszy:\nPoseł Andrzej Szarawarski, cytat:")
+    assert mask_speakers(tekst) == ("Oświadczenia.\nPoseł …:\nWysoka Izbo!\nWicemarszałek …:\nProszę o spokój.\n"
+                                    "Poseł …:\nSekretarz …:\nMinister …:\nMinister kultury miał dwa scenariusze. "
+                                    "Pierwszy:\nPoseł Andrzej Szarawarski, cytat:")
