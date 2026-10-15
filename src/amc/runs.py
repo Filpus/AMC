@@ -10,6 +10,8 @@ from . import text as T
 from .paths import PROCESSED
 
 HOST = socket.gethostname()
+VERDICT_PROMPT = "verdict_v1"
+PAPERQA_PROMPT = "paperqa_v0"
 
 
 def model_slug(model):
@@ -19,6 +21,12 @@ def model_slug(model):
 def out_path(step, prompt, model, suffix=""):
     """data/processed/<step>/<prompt>__<model><suffix>.jsonl"""
     return PROCESSED / step / f"{prompt}__{model_slug(model)}{suffix}.jsonl"
+
+
+def labels_path(model, verdict_prompt=VERDICT_PROMPT):
+    """data/processed/labels/<model>.csv; verdicts from another prompt (PaperQA2: paperqa_v0) get __<prompt>."""
+    suffix = "" if verdict_prompt == VERDICT_PROMPT else f"__{verdict_prompt}"
+    return PROCESSED / "labels" / f"{model_slug(model)}{suffix}.csv"
 
 
 def last_lines(path, key="wypowiedz_id"):

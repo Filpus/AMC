@@ -17,7 +17,7 @@ Opcje, wejście i wyjście każdego skryptu: `python src/<skrypt>.py --help`.
 dane      fetch_sejm.py, fetch_komisje.py → build_corpus.py → korpus wypowiedzi
 pipeline  classify_topic.py     czy wypowiedź dotyczy klimatu (cała populacja: 43 991 wypowiedzi posłów)
           extract_claims.py     twierdzenia mówcy z wypowiedzi o klimacie
-          verify_claims.py      werdykt wobec AR6: sprzeczne / zgodne / brak_podstaw (RAG)
+          verify_claims.py      werdykt wobec AR6: sprzeczne / zgodne / brak_podstaw (RAG; albo PaperQA2)
           label_statements.py   wypowiedź sprzeczna = co najmniej jedno twierdzenie sprzeczne
 gold      gold_standard.py      próba warstwowa według etykiet modelu
 wynik     estimate.py           jakość etykiet (TPR/TNR/F1 z wagami), odsetki z golda, test hipotezy
@@ -44,6 +44,7 @@ python src/build_corpus.py
 # pipeline: każdy krok wznawia się od miejsca przerwania; odcisk populacji musi być 43991 / 2cdcf73e5b
 python src/pipeline.py --n 200                    # szybki test na 200 wypowiedziach
 python src/pipeline.py                            # cała populacja
+python src/pipeline.py --weryfikator paperqa      # werdykt przez PaperQA2 zamiast RAG-a
 
 # gold standard i test hipotezy
 python src/estimate.py                            # warstwy, warunek rzadkości, wynik bez korekty
@@ -65,7 +66,7 @@ wypowiedzi z markerem sceptycyzmu.
 
 ```
 src/             skrypty (nakładki CLI); logika w src/amc/
-prompts/         prompty LLM: topic_v0, claims_v1, verdict_v1; etap A: etap_a_v2, weryfikacja_v*
+prompts/         prompty LLM: topic_v0, claims_v1, verdict_v1, paperqa_v0; etap A: etap_a_v2, weryfikacja_v*
 data/raw/        odpowiedzi API (poza repo)
 data/interim/    tabele z API (w repo tylko historia klubów)
 data/processed/  korpus i wyniki pipeline'u (poza repo), tabele z EDA i wyniki etapu A

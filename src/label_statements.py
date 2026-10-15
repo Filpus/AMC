@@ -1,13 +1,15 @@
 """Statement labels from the three pipeline steps: topic, claims, verdicts.
 
 `sprzeczna` = 1 when a statement with klimat = 1 has at least one claim judged `sprzeczne`. It is empty when klimat = 1 but the claims or some verdicts are missing (the steps
-have not finished). Output: data/processed/labels/<model>.csv, one row per statement classified for topic, with the
-columns the analysis needs (data, member_id, rola, klub, grupa, slownik_klimat = climate dictionary hits), and
-<model>_claims.csv (claims with verdicts). The printed shares are raw: no weights, no correction.
+have not finished). Output: data/processed/labels/<model>.csv (verdicts of another prompt, e.g. PaperQA2:
+<model>__<prompt>.csv), one row per statement classified for topic, with the columns the analysis needs (data,
+member_id, rola, klub, grupa, slownik_klimat = climate dictionary hits), and <same name>_claims.csv (claims with
+verdicts). The printed shares are raw: no weights, no correction.
 
 Example:
   python src/label_statements.py
   python src/label_statements.py --model gemma4:12b
+  python src/label_statements.py --werdykt-prompt paperqa_v0      # verdicts of verify_claims_paperqa.py
 """
 import argparse
 
@@ -15,7 +17,6 @@ import numpy as np
 import pandas as pd
 
 from amc import corpus, llm, population, runs
-from amc.paths import PROCESSED
 
 
 META = ["wypowiedz_id", "data", "member_id", "rola", "klub", "grupa", "slownik_klimat"]
@@ -48,14 +49,14 @@ def main():
     ap.add_argument("--model", default=llm.PIPELINE_MODEL, help="model of all three steps")
     ap.add_argument("--klimat-prompt", default="topic_v0")
     ap.add_argument("--twierdzenia-prompt", default="claims_v1")
-    ap.add_argument("--werdykt-prompt", default="verdict_v1")
+    ap.add_argument("--werdykt-prompt", default=runs.VERDICT_PROMPT, help=f"{runs.PAPERQA_PROMPT} for PaperQA2")
     a = ap.parse_args()
     files = [runs.out_path("topic", a.klimat_prompt, a.model), runs.out_path("claims", a.twierdzenia_prompt, a.model),
              runs.out_path("verdicts", a.werdykt_prompt, a.model)]
     k, c, v = (list(runs.last_lines(p, key).values()) for p, key in zip(files, ["wypowiedz_id"] * 2 + ["twierdzenie_id"]))
     pop = population.select(corpus.load("plenarne")).rename(columns={"klimat": "slownik_klimat"})
     st, cl = label(k, c, v, pop[META])
-    out = PROCESSED / "labels" / f"{runs.model_slug(a.model)}.csv"
+    out = runs.labels_path(a.model, a.werdykt_prompt)
     out.parent.mkdir(parents=True, exist_ok=True)
     st.to_csv(out, index=False)
     cl.to_csv(out.with_name(f"{out.stem}_claims.csv"), index=False)

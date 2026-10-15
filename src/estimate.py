@@ -1,11 +1,12 @@
 """Hypothesis test from the pipeline labels and the gold standard (measurement plan, variant B; amc/estimation).
 
-Input: data/processed/labels/<model>.csv (label_statements.py). Without annotations: stratum sizes N_h, the rarity
-condition, uncorrected shares and the step 6 regression. With --anotacje (the gold sample of `gold_standard.py losuj`,
-annotated): sample composition (true contradicting statements per stratum), steps 5 and 7 (stratified bootstrap) and
-the verdict on the hypothesis. The model verdict for the statements of stratum 3 (not topical by the model) comes from
-`extract_claims.py --ids` and `verify_claims.py --ids` on the sample file; with it step 5 also rates the verdict on all
-statements topical by the gold. Results: data/processed/results/<model>_*.csv.
+Input: data/processed/labels/<model>.csv (label_statements.py; with --werdykt-prompt paperqa_v0 the labels from the
+PaperQA2 verdicts). Without annotations: stratum sizes N_h, the rarity condition, uncorrected shares and the step 6
+regression. With --anotacje (the gold sample of `gold_standard.py losuj`, annotated): sample composition (true
+contradicting statements per stratum), steps 5 and 7 (stratified bootstrap) and the verdict on the hypothesis. The
+model verdict for the statements of stratum 3 (not topical by the model) comes from `extract_claims.py --ids` and
+`verify_claims.py --ids` (or verify_claims_paperqa.py) on the sample file; with it step 5 also rates the verdict on all
+statements topical by the gold. Results: data/processed/results/<labels file name>_*.csv.
 
 Examples:
   python src/estimate.py                                     # after the pipeline: N_h, rarity, step 6
@@ -54,10 +55,12 @@ def main():
     ap.add_argument("--anotacje", help="CSV with wypowiedz_id, tematyczna (0/1), sprzeczna (0/1)")
     ap.add_argument("--powtorzenia", type=int, default=10_000, help="bootstrap resamples")
     ap.add_argument("--twierdzenia-prompt", default="claims_v1")
-    ap.add_argument("--werdykt-prompt", default="verdict_v1")
+    ap.add_argument("--werdykt-prompt", default=runs.VERDICT_PROMPT,
+                    help=f"verdicts of the pipeline run ({runs.PAPERQA_PROMPT} for PaperQA2)")
     a = ap.parse_args()
-    slug = runs.model_slug(a.model)
-    labels = pd.read_csv(PROCESSED / "labels" / f"{slug}.csv")
+    labels_file = runs.labels_path(a.model, a.werdykt_prompt)
+    slug = labels_file.stem
+    labels = pd.read_csv(labels_file)
     design_path = Path(a.proba)
     OUT.mkdir(parents=True, exist_ok=True)
 
