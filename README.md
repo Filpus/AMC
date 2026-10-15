@@ -31,7 +31,8 @@ ollama pull gemma4:12b         # model pipeline'u (https://ollama.com)
 ollama pull bge-m3             # embeddingi do wyszukiwania w AR6
 ```
 
-Korpus, wyniki pipeline'u i PDF-y AR6 są poza repo (dane z API, prawa IPCC); odtwarzają je polecenia niżej.
+Korpus i PDF-y AR6 są poza repo (dane z API, prawa IPCC); odtwarzają je polecenia niżej. Wyniki pełnego przebiegu
+pipeline'u (Gemma 4 12B, ok. 15 h na GPU) są w repo.
 
 ## Uruchomienie
 
@@ -70,7 +71,8 @@ src/             skrypty (nakładki CLI); logika w src/amc/
 prompts/         prompty LLM: topic_v0, claims_v1, verdict_v1, paperqa_v0; etap A: etap_a_v2, weryfikacja_v*
 data/raw/        odpowiedzi API (poza repo)
 data/interim/    tabele z API (w repo tylko historia klubów)
-data/processed/  korpus i wyniki pipeline'u (poza repo), tabele z EDA i wyniki etapu A
+data/processed/  korpus (poza repo), wyniki pipeline'u (topic/, claims/, verdicts/, labels/, results/), tabele z EDA
+                 i wyniki etapu A
 data/ar6/        PDF-y SPM i TS AR6 z indeksem (poza repo; python src/build_ar6.py, pipeline robi to sam)
 data/gold/       próba golda i anotacje
 data/tests/      testy promptów (--testy w classify_topic.py i verify_claims.py)
