@@ -5,7 +5,8 @@ import pandas as pd
 import pytest
 
 from amc import annotation as A
-from gold_standard import page
+from amc import corpus
+from gold_standard import draw, page
 
 
 def design(n=100):
@@ -78,3 +79,18 @@ def test_page_is_blind():
     assert [r["kolejnosc"] for r in data] == [3, 1]
     assert A.sample_id(d) in html and not re.search(r"__[A-Z]+__", html)
     assert not any(i in html for i in d["wypowiedz_id"]) and "</script>\"" not in html
+
+
+def test_draw_only_from_labels_of_the_whole_population(tmp_path, monkeypatch):
+    statements = pd.DataFrame({"wypowiedz_id": [f"10_1_2024-05-0{i}_1" for i in range(1, 5)], "member_id": 1,
+                               "data": pd.Timestamp("2024-05-01"), "merytoryczna": True, "klub": ["PiS", "KO"] * 2,
+                               "tekst": [f"Poseł Jan Kowalski:\nKlimat {i}." for i in range(4)]})
+    monkeypatch.setattr(corpus, "load", lambda kind: statements)
+    labels = statements[["wypowiedz_id"]].assign(grupa=["prawica", "reszta"] * 2, klimat=[1, 1, 0, 0],
+                                                 sprzeczna=[1.0, 0.0, 0.0, 0.0])
+    with pytest.raises(SystemExit, match="cover 3 of 4"):
+        draw(labels.iloc[:3], 0, tmp_path / "sample.csv")
+    assert not (tmp_path / "sample.csv").exists()
+    draw(labels, 0, tmp_path / "sample.csv")
+    texts = pd.read_csv(tmp_path / "texts.csv")
+    assert len(texts) == 4 and texts["tekst"].str.startswith("Poseł …:").all()

@@ -45,12 +45,20 @@ def tests():
 
 
 def report(path):
+    """Tests as expected among the lines without an error; lines with an error (e.g. written by an older version of the
+    step) are listed apart, the next --testy run redoes them."""
     d = pd.DataFrame(runs.last_lines(path, "twierdzenie_id").values())
     d = d[d["oczekiwane"] != ""]
-    ok = d["werdykt"] == d["oczekiwane"]
-    log.info("tests: %d/%d as expected", ok.sum(), len(d))
-    for r in d[~ok].to_dict("records"):
-        log.info("  WRONG %s: expected %s, got %s (%s)", r["twierdzenie_id"], r["oczekiwane"], r["werdykt"], r["ar6"])
+    failed = d["blad"].notna()
+    ok = ~failed & (d["werdykt"] == d["oczekiwane"])
+    log.info("tests: %d/%d as expected%s", ok.sum(), (~failed).sum(),
+             f", {failed.sum()} with an error (run --testy again)" if failed.any() else "")
+    for r in d[failed].to_dict("records"):
+        log.info("  ERROR %s: %s", r["twierdzenie_id"], r["blad"][:150])
+    for r in d[~failed & ~ok].to_dict("records"):
+        said = r.get("werdykt_bez_ar6")
+        log.info("  WRONG %s: expected %s, got %s (%s)%s", r["twierdzenie_id"], r["oczekiwane"], r["werdykt"], r["ar6"],
+                 f"; the model said {said} without a fragment" if pd.notna(said) else "")
 
 
 def main():

@@ -9,7 +9,8 @@ Files (data/gold/, or next to --proba):
 
 Commands:
   losuj            n_h statements per group x stratum of the model labels (amc/estimation.draw; --werdykt-prompt
-                   paperqa_v0: the labels from the PaperQA2 verdicts), drawn once -> sample.csv, texts.csv
+                   paperqa_v0: the labels from the PaperQA2 verdicts), drawn once and only when the labels cover the
+                   whole population -> sample.csv, texts.csv
   strona           annotation page: only the texts in the shuffled order (no wypowiedz_id, speaker, club, stratum or
                    model label) and two labels, tematyczna and (when topical) sprzeczna z AR6; autosaves in the browser
   podproba F1      second annotator: 40 statements of the sample at random, topped up to 10 that the first annotator
@@ -31,7 +32,7 @@ from pathlib import Path
 import pandas as pd
 
 from amc import annotation as A
-from amc import corpus, llm, runs
+from amc import corpus, llm, population, runs
 from amc import estimation as E
 from amc import text as T
 from amc.paths import ROOT
@@ -40,13 +41,25 @@ GOLD = ROOT / "data" / "gold"
 TEMPLATE = ROOT / "src" / "amc" / "templates" / "annotation_page.html"
 
 
+def check_coverage(labels, pop):
+    """The strata come from the labels of the whole study population, not of a test run (--n), an unfinished run or a
+    run on another corpus."""
+    have, want = set(labels["wypowiedz_id"]), set(pop["wypowiedz_id"])
+    if have != want:
+        extra = f" and {len(have - want)} statements outside it" if have - want else ""
+        raise SystemExit(f"the labels cover {len(have & want)} of {len(want)} statements of the study population "
+                         f"(fingerprint {runs.fingerprint(want)}){extra}: finish the pipeline on this corpus first")
+
+
 def draw(labels, seed, design_path):
     if design_path.exists():
         raise SystemExit(f"{design_path} exists; the gold sample is drawn once (delete it to draw again)")
+    pop = population.select(corpus.load("plenarne"))
+    check_coverage(labels, pop)
     sample = E.draw(labels, seed=seed).sample(frac=1, random_state=seed).reset_index(drop=True)
     sample.insert(0, "kolejnosc", range(1, len(sample) + 1))
     sample[["kolejnosc", "wypowiedz_id", "grupa", "warstwa", "N_h", "n_h", "waga", "ziarno"]].to_csv(design_path, index=False)
-    texts = corpus.load("plenarne").set_index("wypowiedz_id")["tekst"]
+    texts = pop.set_index("wypowiedz_id")["tekst"]
     blind = sample[["kolejnosc"]].assign(tekst=[T.mask_speakers(texts[i]) for i in sample["wypowiedz_id"]])
     texts_path = design_path.with_name("texts.csv")
     blind.to_csv(texts_path, index=False)

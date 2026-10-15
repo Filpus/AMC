@@ -1,6 +1,8 @@
 import json
+import logging
 
 from amc import llm
+from verify_claims import report
 
 TEXT = "Wysoka Izbo! Polska emituje poniżej 1% CO2 na świecie, więc nasza redukcja nic nie zmieni. Dziękuję."
 
@@ -33,3 +35,19 @@ def test_judge_claim_maps_fragment_and_demotes_verdict_without_it(monkeypatch):
     monkeypatch.setattr(llm, "chat", fake_chat(json.dumps({"uzasadnienie": "u", "ar6": 0, "werdykt": "zgodne"})))
     res = llm.judge_claim(claim, frags, ("s", "r"))
     assert (res["werdykt"], res["werdykt_bez_ar6"], res["ar6"], res["blad"]) == ("brak_podstaw", "zgodne", "", None)
+
+
+def test_report_counts_only_lines_without_error(tmp_path, caplog):
+    rows = [{"twierdzenie_id": "w1", "oczekiwane": "zgodne", "werdykt": "zgodne", "ar6": "A.1", "werdykt_bez_ar6": None,
+             "blad": None},
+            {"twierdzenie_id": "w2", "oczekiwane": "sprzeczne", "werdykt": "brak_podstaw", "ar6": "",
+             "werdykt_bez_ar6": "sprzeczne", "blad": None},
+            {"twierdzenie_id": "w3", "oczekiwane": "sprzeczne", "werdykt": "sprzeczne", "ar6": "",
+             "blad": "werdykt sprzeczne bez fragmentu ar6"}]
+    path = tmp_path / "tests.jsonl"
+    path.write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
+    with caplog.at_level(logging.INFO, logger="verify_claims"):
+        report(path)
+    assert "tests: 1/2 as expected, 1 with an error" in caplog.text
+    assert "ERROR w3" in caplog.text and "WRONG w2" in caplog.text and "WRONG w1" not in caplog.text
+    assert "said sprzeczne without a fragment" in caplog.text
