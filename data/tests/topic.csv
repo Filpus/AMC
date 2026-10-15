@@ -1,0 +1,26 @@
+test,regula,oczekiwane,wypowiedz_id,tekst
+k91_1,codebook 9.1,1,10_60_2026-06-17_269,
+k91_2,codebook 9.1,1,10_18_2024-09-25_107,
+k91_3,codebook 9.1,0,10_10_2024-04-25_124,
+p1,przykład z promptu,1,9_61_2022-09-15_46,
+p2,przykład z promptu,1,9_61_2022-09-15_97,
+p3,przykład z promptu,1,9_23_2020-12-16_110,
+p4,przykład z promptu,0,9_51_2022-03-24_51,
+p5,przykład z promptu,0,9_47_2022-01-26_130,
+p6,przykład z promptu,0,9_21_2020-11-19_84,
+p7,przykład z promptu,0,9_63_2022-10-06_206,
+p8,przykład z promptu,0,9_38_2021-09-29_267,
+r1a,para: klimat w innym znaczeniu,0,,"Panie Marszałku! Wysoka Izbo! Ten projekt pogorszy klimat inwestycyjny w Polsce. Przedsiębiorcy potrzebują stabilnego prawa, a nie zmian co kwartał. Dlatego nasz klub będzie głosował przeciw. Dziękuję."
+r1b,para: klimat w innym znaczeniu,1,,"Panie Marszałku! Wysoka Izbo! Ten projekt pogorszy klimat inwestycyjny w Polsce. Do tego zmiana klimatu już dziś powoduje coraz dłuższe susze, które uderzają w rolników, a projekt w ogóle tego nie uwzględnia. Dlatego nasz klub będzie głosował przeciw. Dziękuję."
+r2a,para: nazwa urzędu,0,,Pani Marszałek! Mam pytanie do przedstawiciela Ministerstwa Klimatu i Środowiska. Kiedy gminy otrzymają środki na remont oczyszczalni ścieków? Wniosek złożyliśmy w marcu i do dziś nie ma odpowiedzi. Dziękuję.
+r2b,para: nazwa urzędu,1,,"Pani Marszałek! Mam pytanie do przedstawiciela Ministerstwa Klimatu i Środowiska. Kiedy gminy otrzymają środki na adaptację do zmian klimatu? Ulewy takie jak ta, która zalała nasze miasto, będą się zdarzać coraz częściej, bo klimat się ociepla, a kanalizacja nie jest na to przygotowana. Dziękuję."
+r3a,para: tło,0,,"Wysoka Izbo! W dobie zmian klimatu musimy mądrze gospodarować pieniędzmi publicznymi. Ten budżet przewiduje podwyżki dla nauczycieli o 5%, co nie pokrywa nawet inflacji. Apeluję o przyjęcie poprawki. Dziękuję."
+r3b,para: tło,1,,"Wysoka Izbo! W dobie zmian klimatu musimy mądrze gospodarować pieniędzmi publicznymi. Naukowcy IPCC ostrzegają, że bez szybkiej redukcji emisji ocieplenie przekroczy 1,5 stopnia, a koszty adaptacji będą rosły. Tymczasem ten budżet nie przewiduje na adaptację ani złotówki. Dziękuję."
+r4a,para: epitet,0,,"Panie Marszałku! Wasz podatek cukrowy to kolejna religia, tak jak klimatyzm: najpierw wiara, potem rachunek dla obywateli. Sklepikarze na wsiach już dziś ledwo wiążą koniec z końcem, a wy dokładacie im kolejną daninę. Dziękuję."
+r4b,para: epitet,1,,"Panie Marszałku! Klimatyzm to religia. Wmawiacie ludziom, że to człowiek ociepla klimat, choć klimat zmieniał się zawsze, także wtedy, gdy nie było fabryk. A rachunek za tę wiarę zapłacą obywatele w cenach prądu. Dziękuję."
+r5a,para: klęska bez odniesienia,0,,"Pani Marszałek! Wrześniowa powódź zniszczyła setki domów w naszym powiecie. Pytam rząd, kiedy poszkodowani dostaną obiecane 10 tys. zł zasiłku i dlaczego wnioski rozpatruje się tak długo. Dziękuję."
+r5b,para: klęska bez odniesienia,1,,"Pani Marszałek! Wrześniowa powódź zniszczyła setki domów w naszym powiecie. Takich ulew będzie przybywać, bo cieplejsza atmosfera zatrzymuje więcej wody. Pytam rząd, kiedy poszkodowani dostaną obiecane 10 tys. zł zasiłku. Dziękuję."
+r6a,para: energia bez emisji,0,,"Panie Marszałku! Ceny prądu dla gospodarstw domowych wzrosną od stycznia o 30%. Rząd obiecywał zamrożenie, a teraz zostawia ludzi samych z rachunkami. Kiedy przedłużycie tarczę solidarnościową? Dziękuję."
+r6b,para: energia bez emisji,1,,"Panie Marszałku! Ceny prądu dla gospodarstw domowych wzrosną od stycznia o 30%, bo za każdą tonę CO2 z elektrowni węglowych płacimy coraz więcej w systemie ETS. Kiedy rząd zacznie szybciej odchodzić od węgla? Dziękuję."
+r7a,para: OZE bez emisji,0,,Wysoka Izbo! Nowe zasady rozliczania prosumentów są niekorzystne dla właścicieli paneli fotowoltaicznych. Okres zwrotu inwestycji wydłuży się z 6 do 10 lat. Proszę o odpowiedź na piśmie. Dziękuję.
+r7b,para: OZE bez emisji,1,,"Wysoka Izbo! Nowe zasady rozliczania prosumentów spowolnią rozwój fotowoltaiki, a to przecież najtańszy sposób na ograniczenie emisji z naszej energetyki. Proszę o odpowiedź na piśmie. Dziękuję."

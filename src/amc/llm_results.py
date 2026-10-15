@@ -4,7 +4,7 @@ import json
 import numpy as np
 import pandas as pd
 
-from . import corpus, llm, sampling
+from . import corpus, llm, sampling, stage_a
 from .paths import PROCESSED
 
 META = ["wypowiedz_id", "kadencja", "data", "rola", "blok", "liczba_slow", "tekst", *sampling.HIT_COLS]
@@ -39,7 +39,7 @@ def load(prompt="etap_a_v2", source="rok", n=60, keep="last", suffix=""):
     `przepelnienie` / `przesuniecie`: context overflow flags, see `llm.overflow`.
     """
     sample = pd.read_csv(PROCESSED / f"llm_{prompt}_{source}_n{n}_proba.csv")
-    lines = [{**llm.LEGACY_SETTINGS, **json.loads(x)}
+    lines = [{**stage_a.LEGACY_SETTINGS, **json.loads(x)}
              for x in (PROCESSED / f"llm_{prompt}_{source}{suffix}.jsonl").open(encoding="utf-8")]
     res = pd.DataFrame(lines).drop_duplicates("wypowiedz_id", keep=keep).drop(columns=["rok", "waga"], errors="ignore")
     if suffix:

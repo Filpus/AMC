@@ -1,4 +1,4 @@
-"""Stage A: LLM (Ollama) finds scientific claims in statements (logic: amc/llm.py).
+"""Stage A: LLM (Ollama) finds scientific claims in statements (logic: amc/stage_a.py).
 
 Sources:
   gold    data/gold/sample_<version>.csv (run only after manual annotation, to keep it blind)
@@ -35,7 +35,7 @@ import statistics
 import pandas as pd
 import requests
 
-from amc import corpus, llm, sampling
+from amc import corpus, llm, sampling, stage_a
 from amc.paths import PROCESSED, ROOT
 
 log = logging.getLogger("classify")
@@ -60,25 +60,25 @@ def statements(source, n, seed, version, use_prefilter=True, kinds=corpus.RODZAJ
 
 def last_lines(path):
     """Last result line per id, with legacy run settings filled in for lines written before they were recorded."""
-    lines = [{**llm.LEGACY_SETTINGS, **json.loads(x)} for x in path.open(encoding="utf-8")] if path.exists() else []
+    lines = [{**stage_a.LEGACY_SETTINGS, **json.loads(x)} for x in path.open(encoding="utf-8")] if path.exists() else []
     return {r["wypowiedz_id"]: r for r in lines}
 
 
 def needs_rerun(r):
     """Failed, context overflow, or a candidate limit lower than the current one was filled (sentences may be missing)."""
-    full = r["max_kandydatow"] < llm.MAX_CANDIDATES and len(r.get("kandydaci") or []) >= r["max_kandydatow"]
+    full = r["max_kandydatow"] < stage_a.MAX_CANDIDATES and len(r.get("kandydaci") or []) >= r["max_kandydatow"]
     return bool(r["blad"]) or llm.overflow(r.get("tokeny_we"), r.get("tokeny_wy"), r["num_ctx"]) is not None or full
 
 
 def reverify(out, last, todo, model):
     texts = dict(zip(todo["wypowiedz_id"], todo["tekst"]))
     rows = [r for i, r in last.items() if i in texts and not r["blad"] and r.get("kandydaci") is not None
-            and r["prompt_weryfikacji"] != llm.VERIFY_PROMPT]
-    log.info("%d statements: step 2 again with %s -> %s", len(rows), llm.VERIFY_PROMPT, out)
+            and r["prompt_weryfikacji"] != stage_a.VERIFY_PROMPT]
+    log.info("%d statements: step 2 again with %s -> %s", len(rows), stage_a.VERIFY_PROMPT, out)
     with out.open("a", encoding="utf-8") as f:
         for i, r in enumerate(rows, 1):
             try:
-                new = llm.reverify(r, texts[r["wypowiedz_id"]], model)
+                new = stage_a.reverify(r, texts[r["wypowiedz_id"]], model)
             except requests.RequestException as e:
                 log.warning("%s: %s", r["wypowiedz_id"], e)
                 continue
@@ -94,10 +94,10 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--version", default="v1", help="gold sample version")
     ap.add_argument("--prompt", default="etap_a_v2")
-    ap.add_argument("--model", default=llm.DEFAULT_MODEL)
+    ap.add_argument("--model", default=stage_a.DEFAULT_MODEL)
     ap.add_argument("--bez-filtra", action="store_true", help="sample from all statements, not only the regex prefilter")
     ap.add_argument("--plenarne", action="store_true", help="sample only plenary statements (no committees)")
-    ap.add_argument("--max-kandydatow", type=int, default=llm.MAX_CANDIDATES)
+    ap.add_argument("--max-kandydatow", type=int, default=stage_a.MAX_CANDIDATES)
     ap.add_argument("--ponow", action="store_true", help="also rerun overflowed statements and those with a full candidate list")
     ap.add_argument("--weryfikacja", action="store_true", help="only step 2 again on stored candidates")
     ap.add_argument("--powtorka", type=int, default=0, help="test-retest on N random done statements")
@@ -131,10 +131,10 @@ def main():
     with out.open("a", encoding="utf-8") as f:
         for i, row in enumerate(todo.to_dict("records"), 1):
             sid, text = row.pop("wypowiedz_id"), row.pop("tekst")
-            num_ctx, max_cand = settings.get(sid, (llm.NUM_CTX, a.max_kandydatow))
-            system, schema = llm.load_prompt(a.prompt, max_cand), llm.schema_for(max_cand)
+            num_ctx, max_cand = settings.get(sid, (stage_a.NUM_CTX, a.max_kandydatow))
+            system, schema = stage_a.load_prompt(a.prompt, max_cand), stage_a.schema_for(max_cand)
             try:
-                ans = llm.classify(text, system, a.model, schema, num_ctx=num_ctx)
+                ans = stage_a.classify(text, system, a.model, schema, num_ctx=num_ctx)
             except requests.RequestException as e:
                 ans = {"zawiera_twierdzenie": None, "twierdzenia": [], "blad": f"{type(e).__name__}: {e}", "sekundy": None}
             res = {"wypowiedz_id": sid, **row, "model": a.model, "prompt": a.prompt, "max_kandydatow": max_cand, **ans}
