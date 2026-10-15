@@ -1,80 +1,74 @@
 # AMC — wypowiedzi sejmowe a konsensus naukowy
 
-Analiza wypowiedzi w Sejmie RP (posiedzenia plenarne i komisje, kadencje VIII–X) pod kątem zgodności
-lub sprzeczności z konsensusem naukowym (zdrowie: szczepienia i COVID-19; klimat).
+**Pytanie badawcze:** czy w okresie 13.11.2023–15.09.2026 odsetek wypowiedzi plenarnych posłów prawicy (klub w dniu
+wypowiedzi: PiS, RozwojPlus, Konfederacja, Konfederacja_KP) sprzecznych z konsensusem naukowym dotyczącym klimatu
+(raporty AR6 IPCC) był wyższy niż wśród pozostałych posłów? Mianownik to wypowiedzi o klimacie w danej grupie.
 
-**Dokumentacja danych** (pliki, kolumny, decyzje i ograniczenia): [docs/dane.md](docs/dane.md).
-**Jak powstały słowniki tematyczne i markery:** [docs/slowniki.md](docs/slowniki.md).
+Lokalny LLM (Ollama, domyślnie Gemma 4 12B) oznacza wypowiedzi o klimacie, wypisuje z nich twierdzenia i ocenia je
+wobec fragmentów AR6. Na ręcznie oznaczonej próbie warstwowej (gold standard) mierzymy jakość tych etykiet i liczymy
+z niej odsetki w grupach.
 
-## Pipeline
+Dane, kolumny i decyzje: [docs/dane.md](docs/dane.md). Słowniki tematów: [docs/slowniki.md](docs/slowniki.md).
+Opcje, wejście i wyjście każdego skryptu: `python src/<skrypt>.py --help`.
+
+## Schemat
 
 ```
-1. pobieranie   src/fetch_sejm.py, src/fetch_komisje.py  → data/raw/      (odpowiedzi API, nie w repo)
-                                                          → data/interim/  (tabele wypowiedzi, historia klubów)
-2. korpus       src/build_corpus.py                       → data/processed/korpus_{plenarne,komisje}.parquet
-3. analiza      notebooks/01_eda_wypowiedzi.ipynb          (wczytuje korpus: amc.corpus.load)
-                src/report_sceptycyzm.py                   → przegląd wypowiedzi z markerem sceptycyzmu (HTML + CSV)
-4. LLM etap A   src/classify.py                           → data/processed/llm_*.jsonl (Bielik w Ollamie, prompty: prompts/)
-                notebooks/02_llm_etap_a.ipynb              (EDA próby LLM, źródła błędu, plan; wczytuje: amc.llm_results.load)
-                notebooks/03_llm_etap_a_plenarne.ipynb     (to samo na większej próbie: tylko posiedzenia plenarne, 130 wypowiedzi / rok)
+dane      fetch_sejm.py, fetch_komisje.py → build_corpus.py → korpus wypowiedzi
+pipeline  classify_topic.py     czy wypowiedź dotyczy klimatu (cała populacja: 43 991 wypowiedzi posłów)
+          extract_claims.py     twierdzenia mówcy z wypowiedzi o klimacie
+          verify_claims.py      werdykt wobec AR6: sprzeczne / zgodne / brak_podstaw (RAG)
+          label_statements.py   wypowiedź sprzeczna = co najmniej jedno twierdzenie sprzeczne
+gold      gold_standard.py      próba warstwowa według etykiet modelu
+wynik     estimate.py           jakość etykiet (TPR/TNR/F1 z wagami), odsetki z golda, test hipotezy
 ```
 
-Każdy krok można wznowić: pobieranie pomija pliki, które już istnieją.
+## Instalacja
 
 ```bash
 pip install -r requirements.txt
-
-for t in 8 9 10; do python src/fetch_sejm.py --term $t; done                       # posiedzenia plenarne + kluby
-for t in 8 9 10; do python src/fetch_komisje.py --term $t --committees ZDR OSZ ESK RRW; done
-python src/build_corpus.py                                                         # korpus do analizy
-python src/report_sceptycyzm.py                                                    # opcjonalnie
-python src/classify.py --source rok --n 60                                         # etap A na próbie 60 wypowiedzi / rok (Ollama)
-python src/classify.py --source rok --n 130 --plenarne                             # etap A na próbie 130 wypowiedzi plenarnych / rok
-pytest                                                                             # testy jednostkowe
+ollama pull gemma4:12b         # model pipeline'u (https://ollama.com)
+ollama pull bge-m3             # embeddingi do wyszukiwania w AR6
 ```
 
-`fetch_komisje.py` przypisuje klub z historii klubów budowanej przez `fetch_sejm.py`, więc najpierw uruchom `fetch_sejm.py`.
+Korpus, wyniki pipeline'u i PDF-y AR6 są poza repo (dane z API, prawa IPCC); odtwarzają je polecenia niżej.
 
-## Kod
+## Uruchomienie
 
-Cała logika jest w pakiecie `src/amc/`; skrypty w `src/` to cienkie nakładki CLI.
+```bash
+# dane
+for t in 8 9 10; do python src/fetch_sejm.py --term $t; done                       # posiedzenia plenarne i kluby
+for t in 8 9 10; do python src/fetch_komisje.py --term $t --committees ZDR OSZ ESK RRW; done   # komisje (eksploracja)
+python src/build_corpus.py
 
-| moduł | odpowiedzialność |
-|---|---|
-| `amc/paths.py` | ścieżki projektu, kadencje |
-| `amc/http.py` | pobieranie z API z ponawianiem, zapis atomowy |
-| `amc/text.py` | HTML → tekst, czyszczenie wypowiedzi (nagłówek, wtrącenia z sali, stopka), fragmenty z kontekstem, odnajdywanie cytatów LLM w tekście |
-| `amc/komisje.py` | podział zapisu posiedzenia komisji na wypowiedzi (HTML, zapasowo PDF) |
-| `amc/speakers.py` | rola mówcy, dopasowanie posła, klub w dniu wypowiedzi, mapowanie klub → blok |
-| `amc/topics.py` | słowniki tematów, markery `nauka` / `sceptycyzm`, progi, kolumny tematyczne |
-| `amc/sampling.py` | filtr regex (≥ 1 trafienie słownika), okresy H1 (przed COVID / COVID / po ChatGPT), warstwowe losowanie rok × filtr / spoza filtra z wagami N/n |
-| `amc/llm.py` | etap A w Ollamie: krok 1 (kandydaci z rodzajem), krok 2 (weryfikacja kandydatów `naukowe` z kontekstem), wykrywanie przepełnienia kontekstu |
-| `amc/llm_results.py` | wczytanie wyników etapu A z wagami próby i metadanymi korpusu, kandydaci i twierdzenia, estymatory ważone, bootstrap w warstwach roku, kappa (test–retest) |
-| `amc/corpus.py` | budowa i wczytywanie korpusu (filtr wypowiedzi merytorycznych: bez prowadzącego, ≥ 40 słów) |
-| `amc/viz.py` | paleta i styl wykresów |
+# pipeline: każdy krok wznawia się od miejsca przerwania; odcisk populacji musi być 43991 / 2cdcf73e5b
+python src/pipeline.py --n 200                    # szybki test na 200 wypowiedziach
+python src/pipeline.py                            # cała populacja
 
-Regułę (próg, słownik, mapowanie klubów) zmienia się w jednym miejscu w `amc/`, a potem przebudowuje korpus
-(`python src/build_corpus.py`) i przelicza notatnik.
+# gold standard i test hipotezy
+python src/estimate.py                            # warstwy, warunek rzadkości, wynik bez korekty
+python src/gold_standard.py losuj                 # próba golda: data/gold/sample.csv i texts.csv
+python src/estimate.py --anotacje data/gold/annotations_XX.csv   # jakość etykiet, odsetki, werdykt hipotezy
 
-## Korpus (`data/processed/korpus_*.parquet`)
+pytest
+```
 
-Jeden wiersz = jedna wypowiedź, klucz `wypowiedz_id`. Najważniejsze kolumny: `tekst` (oczyszczony), `liczba_slow`,
-`rola` (poseł / prowadzący / rząd / inni), `member_id`, `klub` (w dniu wypowiedzi), `blok`, `merytoryczna`,
-`data` / `miesiac` / `rok`, liczby trafień słowników (`covid`, `klimat`, …, `nauka`, `sceptycyzm`) i flagi
-wypowiedzi tematycznych (`<temat>_tem`, `zdrowie_tem`, `dowolny_tem`). Korpus komisji ma dodatkowo `komisja`,
-`etykieta` (mówca) i `porzadek` (porządek obrad).
+## Eksploracja
 
-Kolejne etapy (np. klasyfikacja LLM) powinny wczytywać korpus i zapisywać wyniki z kluczem `wypowiedz_id`.
+`notebooks/01_eda_wypowiedzi.ipynb` opisuje korpus i słowniki tematów. `notebooks/02`–`03` i `src/classify.py` to
+etap A, liczony dla wcześniejszej wersji hipotezy (okna czasowe A i B). `src/report_sceptycyzm.py` daje przegląd
+wypowiedzi z markerem sceptycyzmu.
 
-## Struktura katalogów
+## Struktura repo
 
 ```
-data/raw/        surowe odpowiedzi API (poza repo, poza mp.json)
-data/interim/    tabele z API (parquet poza repo; historia klubów w repo)
-data/processed/  korpus (poza repo) i zagregowane tabele z EDA
-data/gold/       ręczna anotacja (do zrobienia)
-prompts/         prompty LLM: etap_a_v2 (krok 1), weryfikacja_v1 (krok 2; v0 dla wyników sprzed naprawy)
-figures/         wykresy z notatnika
-notebooks/       analiza
-tests/           testy jednostkowe (pytest)
+src/             skrypty (nakładki CLI); logika w src/amc/
+prompts/         prompty LLM: topic_v0, claims_v1, verdict_v1; etap A: etap_a_v2, weryfikacja_v*
+data/raw/        odpowiedzi API (poza repo)
+data/interim/    tabele z API (w repo tylko historia klubów)
+data/processed/  korpus i wyniki pipeline'u (poza repo), tabele z EDA i wyniki etapu A
+data/ar6/        PDF-y SPM i TS AR6 z indeksem (poza repo; python src/build_ar6.py, pipeline robi to sam)
+data/gold/       próba golda i anotacje
+data/tests/      testy promptów (--testy w classify_topic.py i verify_claims.py)
+notebooks/, figures/, tests/
 ```

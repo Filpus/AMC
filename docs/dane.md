@@ -39,7 +39,7 @@ Pobrane komisje: **ZDR** (Zdrowia), **OSZ** (Ochrony Środowiska), **ESK** (Ener
 | tabele z API | `data/interim/` | tylko historia klubów (CSV) | `fetch_sejm.py`, `fetch_komisje.py` (krok `build`) |
 | **korpus do analizy** | `data/processed/korpus_*.parquet` | nie (duże; odtwarzalne) | `build_corpus.py` |
 | wyniki EDA | `data/processed/eda_*.csv`, `figures/` | tak | notatnik, `report_sceptycyzm.py` |
-| ręczna anotacja | `data/gold/` | tak | (do zrobienia) |
+| ręczna anotacja | `data/gold/` | tak | `gold_standard.py losuj` (losowanie warstwowe według etykiet modelu) |
 
 Zasada: **nie edytujemy ręcznie plików w `raw/`, `interim/` ani korpusu** — zmieniamy kod w `src/amc/` i przebudowujemy.
 
@@ -102,7 +102,8 @@ Tylko w `korpus_komisje`: `komisja` (kod), `komisje` (wszystkie kody, gdy posied
 1. **Słowniki to filtr, nie klasyfikacja** (jak powstały: [slowniki.md](slowniki.md)). Trafienie „sceptycyzm” oznacza użycie zwrotu, nie stanowisko —
    część to cytowanie lub polemika („to nie jest sanitaryzm”). Precyzja i czułość słowników nie są jeszcze zmierzone.
 2. **Klub na dzień wypowiedzi** pochodzi z głosowań; przed pierwszym głosowaniem posła bierzemy pierwszy znany klub.
-   `klub_dzis` (stan na dzień pobrania) służy tylko jako zapas.
+   Zmiana klubu jest widoczna dopiero od pierwszego głosowania po niej. `klub_dzis` (stan na dzień pobrania) służy
+   tylko jako zapas dla posłów bez głosowań.
 3. **Bloki** łączą rozłamy z klubem macierzystym, gdy (prawie) wszyscy członkowie przyszli z jednego klubu
    (RozwojPlus → PiS, Centrum → Polska 2050); małe koła o mieszanym rodowodzie → „Inne / niez.”.
 4. **Komisje:** w zapisach jest dużo osób spoza Sejmu (`member_id == 0`, `rola == "inni"`) — przy analizie
@@ -111,6 +112,11 @@ Tylko w `korpus_komisje`: `komisja` (kod), `komisje` (wszystkie kody, gdy posied
 5. **Wtrącenia prowadzącego** wewnątrz wypowiedzi plenarnej („Wicemarszałek X: …”) zostają w tekście — niewielki szum.
 6. **Kadencja X trwa** — dane kończą się na dniu pobrania (październik 2026); porównując kadencje, normalizuj
    (np. na 1000 wypowiedzi), a nie licz wartości bezwzględnych.
+7. **Grupy z hipotezy** (prawica i reszta, [README](../README.md)): prawica to wypowiedzi posłów, których `klub` w dniu
+   wypowiedzi to PiS, RozwojPlus, Konfederacja albo Konfederacja_KP; reszta to pozostali posłowie. Korpus nie ma jeszcze
+   takiej kolumny. W X kadencji odpowiada to `blok` równemu „PiS” albo „Konfederacja”. Kluby Republikanie (blok
+   „Inne / niez.”) i Kukiz15 należą do reszty. Ministrowie będący posłami mają `rola = "rząd"`, więc filtr `rola == "poseł"`
+   ich pomija.
 
 ---
 
