@@ -2,15 +2,17 @@
 
 Input: data/processed/labels/<model>.csv (label_statements.py; with --werdykt-prompt paperqa_v0 the labels from the
 PaperQA2 verdicts). Without annotations: stratum sizes N_h, the rarity condition, uncorrected shares and the step 6
-regression. With --anotacje (the gold sample of `gold_standard.py losuj`, annotated): sample composition (true
-contradicting statements per stratum), steps 5 and 7 (stratified bootstrap) and the verdict on the hypothesis. The
-model verdict for the statements of stratum 3 (not topical by the model) comes from `extract_claims.py --ids` and
-`verify_claims.py --ids` (or verify_claims_paperqa.py) on the sample file; with it step 5 also rates the verdict on all
-statements topical by the gold. Results: data/processed/results/<labels file name>_*.csv.
+regression. With --anotacje (the export of the annotation page of `gold_standard.py strona`, checked by
+amc/annotation.load): sample composition (true contradicting statements per stratum), steps 5 and 7 (stratified
+bootstrap) and the verdict on the hypothesis. The model verdict for the statements of stratum 3 (not topical by the
+model) comes from `extract_claims.py --ids` and `verify_claims.py --ids` (or verify_claims_paperqa.py) on the sample
+file; with it step 5 also rates the verdict on all statements topical by the gold. Results:
+data/processed/results/<labels file name>_*.csv.
 
 Examples:
   python src/estimate.py                                     # after the pipeline: N_h, rarity, step 6
   python src/gold_standard.py losuj                          # gold sample
+  python src/gold_standard.py strona                         # annotation page data/gold/annotation.html
   python src/extract_claims.py --ids data/gold/sample.csv    # model verdict for the whole sample
   python src/verify_claims.py --ids data/gold/sample.csv
   python src/estimate.py --anotacje data/gold/annotations_FK.csv
@@ -21,6 +23,7 @@ from pathlib import Path
 import pandas as pd
 
 from amc import llm, runs
+from amc import annotation as A
 from amc import estimation as E
 from amc.paths import PROCESSED, ROOT
 from label_statements import label
@@ -43,6 +46,8 @@ def sample_run(design_path, model, claims_prompt, verdict_prompt):
     claims = list(runs.last_lines(runs.out_path("claims", claims_prompt, model, suffix)).values())
     verdicts = list(runs.last_lines(runs.out_path("verdicts", verdict_prompt, model, suffix), "twierdzenie_id").values())
     ids = [r["wypowiedz_id"] for r in claims]
+    if not ids:
+        return {}
     st, _ = label([{"wypowiedz_id": i, "klimat": 1, "blad": None} for i in ids], claims, verdicts,
                   pd.DataFrame({"wypowiedz_id": ids}))
     return dict(zip(st["wypowiedz_id"], st["sprzeczna"]))
@@ -52,7 +57,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--model", default=llm.PIPELINE_MODEL)
     ap.add_argument("--proba", default=str(GOLD / "sample.csv"), help="gold sample design")
-    ap.add_argument("--anotacje", help="CSV with wypowiedz_id, tematyczna (0/1), sprzeczna (0/1)")
+    ap.add_argument("--anotacje", help="export of the annotation page: kolejnosc, tematyczna, sprzeczna (0/1)")
     ap.add_argument("--powtorzenia", type=int, default=10_000, help="bootstrap resamples")
     ap.add_argument("--twierdzenia-prompt", default="claims_v1")
     ap.add_argument("--werdykt-prompt", default=runs.VERDICT_PROMPT,
@@ -82,11 +87,11 @@ def main():
 
     design = pd.read_csv(design_path)
     check_design(design, labels)
-    ann = pd.read_csv(a.anotacje)[["wypowiedz_id", "tematyczna", "sprzeczna"]]
-    gold = design.merge(ann, on="wypowiedz_id", how="left")
-    missing = gold["tematyczna"].isna().sum()
-    if missing:
-        raise SystemExit(f"{missing} statements of the gold sample have no annotation")
+    try:
+        ann = A.load(a.anotacje, design)
+    except ValueError as e:
+        raise SystemExit(e)
+    gold = design.merge(ann[["kolejnosc", "tematyczna", "sprzeczna", "komentarz"]], on="kolejnosc")
     gold["werdykt_modelu"] = E.sample_verdicts(gold, sample_run(design_path, a.model, a.twierdzenia_prompt,
                                                                 a.werdykt_prompt))
     no_verdict = int(gold["werdykt_modelu"].isna().sum())

@@ -19,7 +19,7 @@ pipeline  classify_topic.py     czy wypowiedź dotyczy klimatu (cała populacja:
           extract_claims.py     twierdzenia mówcy z wypowiedzi o klimacie
           verify_claims.py      werdykt wobec AR6: sprzeczne / zgodne / brak_podstaw (RAG; albo PaperQA2)
           label_statements.py   wypowiedź sprzeczna = co najmniej jedno twierdzenie sprzeczne
-gold      gold_standard.py      próba warstwowa według etykiet modelu
+gold      gold_standard.py      próba warstwowa według etykiet modelu, strona do anotacji, kappa drugiego anotatora
 wynik     estimate.py           jakość etykiet (TPR/TNR/F1 z wagami), odsetki z golda, test hipotezy
 ```
 
@@ -49,6 +49,7 @@ python src/pipeline.py --weryfikator paperqa      # werdykt przez PaperQA2 zamia
 # gold standard i test hipotezy
 python src/estimate.py                            # warstwy, warunek rzadkości, wynik bez korekty
 python src/gold_standard.py losuj                 # próba golda: data/gold/sample.csv i texts.csv
+python src/gold_standard.py strona                # strona dla anotatora: data/gold/annotation.html
 python src/extract_claims.py --ids data/gold/sample.csv   # werdykt modelu dla całej próby
 python src/verify_claims.py --ids data/gold/sample.csv
 python src/estimate.py --anotacje data/gold/annotations_XX.csv   # jakość etykiet, odsetki, werdykt hipotezy

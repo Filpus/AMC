@@ -1,0 +1,214 @@
+<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>__TITLE__</title>
+<style>
+:root{--bg:#f9f9f7;--card:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--line:#e1e0d9;--accent:#2a78d6;--ok:#1f7a3d;--todo:#b45309;--warn:#b42318}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d0d0d;--card:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;--line:#2c2c2a;--accent:#3987e5;--ok:#4ade80;--todo:#f59e0b;--warn:#f87171}}
+:root[data-theme="dark"]{--bg:#0d0d0d;--card:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;--line:#2c2c2a;--accent:#3987e5;--ok:#4ade80;--todo:#f59e0b;--warn:#f87171}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:920px;margin:0 auto;padding:12px 16px 60px}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar h1{font-size:17px;margin:0 8px 0 0}.bar .count{color:var(--ink2);font-size:14px;margin-right:auto}
+input,select,textarea,button{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+button{cursor:pointer}button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+textarea{width:100%;min-height:38px;resize:vertical}
+details.help{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 16px;margin:14px 0}
+details.help summary{cursor:pointer;font-weight:600}details.help li{margin:4px 0}
+.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--todo);border-radius:10px;padding:14px 16px;margin:14px 0}
+.card.done{border-left-color:var(--ok)}
+.meta{color:var(--muted);font-size:13px;margin-bottom:8px}.meta b{color:var(--ink2)}
+.text p{margin:0 0 3px}.text .para{margin-bottom:10px}.who{color:var(--muted);font-style:italic}
+.form{border-top:1px dashed var(--line);margin-top:12px;padding-top:10px;display:grid;gap:10px}
+.q{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.lbl{font-size:14px;color:var(--ink2);font-weight:600;min-width:150px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg label{position:relative;cursor:pointer}.seg label+label{border-left:1px solid var(--line)}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg span{display:block;padding:5px 16px}
+.seg input:checked+span{background:var(--accent);color:#fff}
+.seg input:focus-visible+span{outline:2px solid var(--accent);outline-offset:-2px}
+.hint{color:var(--muted);font-size:13px}
+.hidden{display:none}
+</style></head><body>
+<div class="bar">
+  <h1>__TITLE__</h1><span class="count" id="count"></span>
+  <label>anotator <input id="annotator" size="4" placeholder="inicjały"></label>
+  <select id="filter"><option value="all">wszystkie</option><option value="todo">do zrobienia</option><option value="done">gotowe</option><option value="note">z komentarzem</option></select>
+  <button id="next" title="przewiń do pierwszej wypowiedzi bez etykiet">następna do zrobienia</button>
+  <input id="jump" placeholder="idź do #" size="7">
+  <button id="import">Wczytaj CSV</button><input type="file" id="file" accept=".csv" class="hidden">
+  <button class="primary" id="export">Eksport CSV</button>
+</div>
+<main>
+<details class="help" id="help"><summary>Jak oznaczać</summary><ul>
+  <li>Każda wypowiedź dostaje dwie etykiety według codebooka: <b>tematyczna</b> (czy wypowiedź dotyczy klimatu)
+    oraz, tylko dla tematycznych, <b>sprzeczna z AR6</b> (czy co najmniej jedno twierdzenie mówcy jest sprzeczne
+    z ustaleniami raportu AR6 IPCC).</li>
+  <li>Nie widać mówcy, klubu ani wyniku modelu, a kolejność jest losowa. Nie szukaj wypowiedzi w stenogramach.</li>
+  <li>Komentarz jest opcjonalny: wpisz go, gdy decyzja była trudna albo codebook jej nie rozstrzyga.</li>
+  <li>Etykiety zapisują się w tej przeglądarce na tym komputerze. Co jakiś czas i na koniec kliknij <b>Eksport CSV</b>
+    (plik z Twoimi inicjałami) i wyślij go. <b>Wczytaj CSV</b> przywraca etykiety z wcześniejszego eksportu, np. na
+    innym komputerze.</li>
+</ul></details>
+<div id="list"></div>
+</main>
+<script>
+const NAME = "__NAME__", SAMPLE = "__SAMPLE__";
+const ROWS = __DATA__;
+const KEY = `amc_gold_${NAME}_${SAMPLE}`;
+const COLS = ["kolejnosc", "tematyczna", "sprzeczna", "komentarz", "proba"];
+const SENT = /(?<=[.!?…])\s+(?=[A-ZĄĆĘŁŃÓŚŹŻ„"(])/u;
+const LABEL = /^(\S[^\n]{0,80}? …:)\s*/u;
+const IDS = new Set(ROWS.map(r => String(r.kolejnosc)));
+
+let st = {annotator: "", ann: {}};
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) st = {...st, ...s}; } catch (e) {}
+let saveTimer;
+function save(){ clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }, 300); }
+const ann = id => st.ann[id] ??= {tematyczna: "", sprzeczna: "", komentarz: ""};
+const isDone = id => { const a = ann(id); return a.tematyczna === "0" || (a.tematyczna === "1" && a.sprzeczna !== ""); };
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function seg(field, id, cur){
+  return `<span class="seg" role="radiogroup">${[["1", "tak"], ["0", "nie"]].map(([v, t]) =>
+    `<label><input type="radio" name="${field}-${id}" data-f="${field}" value="${v}"${cur === v ? " checked" : ""}><span>${t}</span></label>`
+  ).join("")}</span>`;
+}
+
+function textHTML(t){
+  return String(t).replace(/\n(?=[^\n]{0,80} …:)/g, "\n\n").split(/\n\s*\n/).map(p => {
+    p = p.replace(/\s+/g, " ").trim();
+    if (!p) return "";
+    const m = p.match(LABEL), who = m ? `<span class="who">${esc(m[1])}</span> ` : "";
+    const body = (m ? p.slice(m[0].length) : p).split(SENT).map(s => `<p>${esc(s)}</p>`).join("");
+    return `<div class="para">${who}${body}</div>`;
+  }).join("");
+}
+
+function render(){
+  const list = document.getElementById("list");
+  list.innerHTML = ROWS.map(r => {
+    const id = String(r.kolejnosc), a = ann(id);
+    return `<article class="card" id="k${id}" data-id="${id}">
+      <div class="meta"><b>#${id}</b> · ${r.liczba_slow} słów</div>
+      <div class="text">${textHTML(r.tekst)}</div>
+      <div class="form">
+        <div class="q"><span class="lbl">tematyczna</span>${seg("tematyczna", id, a.tematyczna)}</div>
+        <div class="q s${a.tematyczna === "1" ? "" : " hidden"}"><span class="lbl">sprzeczna z AR6</span>${seg("sprzeczna", id, a.sprzeczna)}</div>
+        <div><textarea data-f="komentarz" placeholder="komentarz (opcjonalnie)">${esc(a.komentarz)}</textarea></div>
+      </div></article>`;
+  }).join("");
+  list.querySelectorAll(".card").forEach(card => refresh(card));
+  count();
+}
+
+function applyFilter(card){
+  const id = card.dataset.id, f = document.getElementById("filter").value;
+  const hide = (f === "todo" && isDone(id)) || (f === "done" && !isDone(id)) || (f === "note" && !ann(id).komentarz.trim());
+  card.classList.toggle("hidden", hide);
+}
+function refresh(card){
+  const id = card.dataset.id;
+  card.classList.toggle("done", isDone(id));
+  card.querySelector(".s").classList.toggle("hidden", ann(id).tematyczna !== "1");
+  applyFilter(card);
+}
+function count(){
+  const n = ROWS.filter(r => isDone(String(r.kolejnosc))).length;
+  const s = ROWS.filter(r => ann(String(r.kolejnosc)).sprzeczna === "1").length;
+  document.getElementById("count").textContent = `oznaczone ${n} / ${ROWS.length} · sprzeczne ${s}`;
+}
+
+const list = document.getElementById("list");
+list.addEventListener("change", e => {
+  const card = e.target.closest(".card"), f = e.target.dataset.f;
+  if (!card || e.target.type !== "radio") return;
+  const a = ann(card.dataset.id);
+  a[f] = e.target.value;
+  if (f === "tematyczna" && a.tematyczna === "0") {
+    a.sprzeczna = "";
+    card.querySelectorAll('input[data-f="sprzeczna"]').forEach(x => { x.checked = false; });
+  }
+  save(); refresh(card); count();
+});
+list.addEventListener("input", e => {
+  const card = e.target.closest(".card");
+  if (!card || e.target.dataset.f !== "komentarz") return;
+  ann(card.dataset.id).komentarz = e.target.value;
+  save(); applyFilter(card);
+});
+
+document.getElementById("filter").addEventListener("change", () => list.querySelectorAll(".card").forEach(applyFilter));
+document.getElementById("next").addEventListener("click", () => {
+  const r = ROWS.find(r => !isDone(String(r.kolejnosc)));
+  if (!r) { alert("Wszystkie wypowiedzi mają etykiety."); return; }
+  const el = document.getElementById("k" + r.kolejnosc);
+  el.classList.remove("hidden"); el.scrollIntoView({behavior: "smooth"});
+});
+document.getElementById("jump").addEventListener("keydown", e => {
+  if (e.key !== "Enter") return;
+  const el = document.getElementById("k" + e.target.value.replace("#", "").trim());
+  if (el) { el.classList.remove("hidden"); el.scrollIntoView({behavior: "smooth"}); }
+});
+const annInput = document.getElementById("annotator");
+annInput.value = st.annotator;
+annInput.addEventListener("input", () => { st.annotator = annInput.value.trim(); save(); });
+const help = document.getElementById("help");
+help.open = !Object.keys(st.ann).length;
+
+function csvCell(v){ v = String(v ?? ""); return /[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; }
+function toCSV(cols, rows){ return "﻿" + [cols, ...rows.map(r => cols.map(c => r[c]))].map(r => r.map(csvCell).join(",")).join("\r\n") + "\r\n"; }
+function download(name, text){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], {type: "text/csv;charset=utf-8"}));
+  a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+document.getElementById("export").addEventListener("click", () => {
+  if (!st.annotator) { alert("Wpisz inicjały anotatora."); annInput.focus(); return; }
+  const todo = ROWS.filter(r => !isDone(String(r.kolejnosc))).length;
+  if (todo && !confirm(`${todo} wypowiedzi nie ma jeszcze etykiet. Eksportować mimo to?`)) return;
+  download(`${NAME}_${st.annotator}.csv`, toCSV(COLS, ROWS.map(r => {
+    const a = ann(String(r.kolejnosc));
+    return {kolejnosc: r.kolejnosc, tematyczna: a.tematyczna, sprzeczna: a.tematyczna === "1" ? a.sprzeczna : "",
+            komentarz: a.komentarz, proba: SAMPLE};
+  })));
+});
+
+function parseCSV(t){
+  t = t.replace(/^﻿/, "");
+  const first = t.slice(0, t.indexOf("\n"));
+  const d = first.includes(";") && !first.includes(",") ? ";" : ",";
+  const rows = []; let row = [], f = "", q = false;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (q) { if (c === '"') { if (t[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+    else if (c === '"') q = true;
+    else if (c === d) { row.push(f); f = ""; }
+    else if (c === "\n") { row.push(f); rows.push(row); row = []; f = ""; }
+    else if (c !== "\r") f += c;
+  }
+  if (f !== "" || row.length) { row.push(f); rows.push(row); }
+  const head = (rows.shift() || []).map(h => h.trim());
+  return rows.filter(r => r.some(x => x !== "")).map(r => Object.fromEntries(head.map((h, i) => [h, (r[i] ?? "").trim()])));
+}
+const val = v => String(v ?? "").replace(/\.0$/, "");
+const fileInput = document.getElementById("file");
+document.getElementById("import").addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", async () => {
+  const file = fileInput.files[0]; fileInput.value = "";
+  if (!file) return;
+  const recs = parseCSV(await file.text());
+  if (!recs.length || !("tematyczna" in recs[0]) || !("kolejnosc" in recs[0])) { alert(`${file.name}: to nie jest plik anotacji.`); return; }
+  if (recs.some(r => r.proba && r.proba !== SAMPLE)) { alert(`${file.name} pochodzi z innej próby golda; nie wczytano.`); return; }
+  const known = recs.filter(r => IDS.has(val(r.kolejnosc)));
+  if (!confirm(`Wczytać etykiety ${known.length} wypowiedzi z ${file.name}? Zastąpią obecne.`)) return;
+  known.forEach(r => {
+    const t = val(r.tematyczna);
+    st.ann[val(r.kolejnosc)] = {tematyczna: t, sprzeczna: t === "1" ? val(r.sprzeczna) : "", komentarz: r.komentarz || ""};
+  });
+  save(); render();
+  const skipped = recs.length - known.length;
+  alert(`Wczytano ${known.length} wypowiedzi.` + (skipped ? ` Pominięto ${skipped} spoza tej strony.` : ""));
+});
+
+render();
+</script></body></html>

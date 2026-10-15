@@ -39,7 +39,7 @@ Pobrane komisje: **ZDR** (Zdrowia), **OSZ** (Ochrony Środowiska), **ESK** (Ener
 | tabele z API | `data/interim/` | tylko historia klubów (CSV) | `fetch_sejm.py`, `fetch_komisje.py` (krok `build`) |
 | **korpus do analizy** | `data/processed/korpus_*.parquet` | nie (duże; odtwarzalne) | `build_corpus.py` |
 | wyniki EDA | `data/processed/eda_*.csv`, `figures/` | tak | notatnik, `report_sceptycyzm.py` |
-| ręczna anotacja | `data/gold/` | tak | `gold_standard.py losuj` (losowanie warstwowe według etykiet modelu) |
+| ręczna anotacja | `data/gold/` | tak (strona HTML nie) | `gold_standard.py` (`losuj`: losowanie warstwowe według etykiet modelu; `strona`: strona do anotacji; `podproba`, `zgodnosc`: drugi anotator i kappa) |
 
 Zasada: **nie edytujemy ręcznie plików w `raw/`, `interim/` ani korpusu** — zmieniamy kod w `src/amc/` i przebudowujemy.
 
