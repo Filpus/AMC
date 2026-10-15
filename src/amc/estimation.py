@@ -39,6 +39,7 @@ def draw(labels, sizes=SIZES, seed=0):
     out = pd.concat(parts)
     out["n_h"] = out.groupby(["grupa", "warstwa"])["wypowiedz_id"].transform("size")
     out["waga"] = out["N_h"] / out["n_h"]
+    out["ziarno"] = seed
     return out.reset_index(drop=True)
 
 
@@ -80,9 +81,26 @@ def arrays(gold):
     """Gold sample as numpy arrays: model labels from the stratum, gold `t` (topical) and `s` (topical and
     contradicting)."""
     t = gold["tematyczna"].astype(int).to_numpy()
-    return {"grupa": gold["grupa"].to_numpy(), "warstwa": gold["warstwa"].to_numpy(),
-            "w": gold["waga"].to_numpy(float), "mt": (gold["warstwa"] != 3).to_numpy(int),
-            "ms": (gold["warstwa"] == 1).to_numpy(int), "t": t, "s": t * gold["sprzeczna"].fillna(0).astype(int).to_numpy()}
+    out = {"grupa": gold["grupa"].to_numpy(), "warstwa": gold["warstwa"].to_numpy(),
+           "w": gold["waga"].to_numpy(float), "mt": (gold["warstwa"] != 3).to_numpy(int),
+           "ms": (gold["warstwa"] == 1).to_numpy(int), "t": t, "s": t * gold["sprzeczna"].fillna(0).astype(int).to_numpy()}
+    if "werdykt_modelu" in gold and gold["werdykt_modelu"].notna().all():
+        out["mv"] = gold["werdykt_modelu"].astype(int).to_numpy()
+    return out
+
+
+def sample_verdicts(gold, verdict_any):
+    """Model verdict for every statement of the gold sample: the full-run label in strata 1-2 and, in stratum 3,
+    `verdict_any` (wypowiedz_id -> 0/1 from claims and verdicts run on the sample whatever the topicality)."""
+    return np.where(gold["warstwa"] == 3, gold["wypowiedz_id"].map(verdict_any), (gold["warstwa"] == 1).astype(float))
+
+
+def composition(gold):
+    """Per group x stratum: N_h, n_h, weight and the gold counts of topical and contradicting statements."""
+    a = arrays(gold)
+    return (gold.assign(tematyczne=a["t"], sprzeczne=a["s"]).groupby(["grupa", "warstwa"])
+            .agg(N_h=("N_h", "first"), n_h=("n_h", "first"), waga=("waga", "first"), tematyczne=("tematyczne", "sum"),
+                 sprzeczne=("sprzeczne", "sum")).reset_index())
 
 
 def proportions(a):
@@ -106,12 +124,16 @@ def rates(model, gold, w):
 
 
 def quality(a):
-    """Step 5: weighted rates by group for the three stages."""
+    """Step 5: weighted rates by group for topicality, the verdict on statements topical by the model and the gold, the
+    final label and, when the model verdict exists for the whole sample, the verdict on all statements topical by the
+    gold (`werdykt_bez_filtra`)."""
     out = {}
     for g in GROUPS:
         m = a["grupa"] == g
         stages = {"tematycznosc": (a["mt"], a["t"], m), "werdykt": (a["ms"], a["s"], m & (a["mt"] == 1) & (a["t"] == 1)),
                   "etykieta": (a["ms"], a["s"], m)}
+        if "mv" in a:
+            stages["werdykt_bez_filtra"] = (a["mv"], a["s"], m & (a["t"] == 1))
         for stage, (model, truth, rows) in stages.items():
             out.update({f"{g}_{stage}_{k}": v for k, v in rates(model[rows], truth[rows], a["w"][rows]).items()})
     return out

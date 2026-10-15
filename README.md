@@ -48,6 +48,8 @@ python src/pipeline.py                            # cała populacja
 # gold standard i test hipotezy
 python src/estimate.py                            # warstwy, warunek rzadkości, wynik bez korekty
 python src/gold_standard.py losuj                 # próba golda: data/gold/sample.csv i texts.csv
+python src/extract_claims.py --ids data/gold/sample.csv   # werdykt modelu dla całej próby
+python src/verify_claims.py --ids data/gold/sample.csv
 python src/estimate.py --anotacje data/gold/annotations_XX.csv   # jakość etykiet, odsetki, werdykt hipotezy
 
 pytest

@@ -4,15 +4,21 @@ Input: data/processed/topic/<topic prompt>__<topic model>.jsonl (by default the 
 data/processed/claims/<prompt>__<model>.jsonl, one line per statement with the list `twierdzenia`: nr, cytat,
 cytat_w_tekscie (share of the quote found verbatim), twierdzenie (the speaker's position), twierdzenie_en. Reruns skip
 statements done without error.
+  --ids FILE  statements listed in a CSV with a wypowiedz_id column, whatever their klimat label (e.g. the gold sample,
+              to have the model verdict also for statements the model found not topical); results get the suffix
+              __<file name>
 
 Example:
   python src/extract_claims.py
   python src/extract_claims.py --model qwen3.5:9b
+  python src/extract_claims.py --ids data/gold/sample.csv
 """
 import argparse
 import logging
 import statistics
+from pathlib import Path
 
+import pandas as pd
 import requests
 
 from amc import llm, runs
@@ -32,15 +38,21 @@ def main():
     ap.add_argument("--klimat-prompt", default="topic_v0")
     ap.add_argument("--klimat-model", help="model whose topic classification to use (default: --model)")
     ap.add_argument("--num-ctx", type=int, default=llm.CLAIMS_NUM_CTX)
+    ap.add_argument("--ids", help="CSV with wypowiedz_id: these statements, whatever their klimat label")
     a = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S")
 
-    source = runs.out_path("topic", a.klimat_prompt, a.klimat_model or a.model)
-    ids = set(topical_ids(source))
+    if a.ids:
+        source = Path(a.ids)
+        ids = set(pd.read_csv(source, usecols=["wypowiedz_id"])["wypowiedz_id"])
+        out = runs.out_path(STEP, a.prompt, a.model, f"__{source.stem}")
+    else:
+        source = runs.out_path("topic", a.klimat_prompt, a.klimat_model or a.model)
+        ids = set(topical_ids(source))
+        out = runs.out_path(STEP, a.prompt, a.model)
     pop = runs.shuffled_population()
-    out = runs.out_path(STEP, a.prompt, a.model)
     todo = pop[pop["wypowiedz_id"].isin(ids - runs.done(out))]
-    log.info("%d statements with klimat = 1 in %s; %d to do -> %s", len(ids), source.name, len(todo), out)
+    log.info("%d statements from %s; %d to do -> %s", len(ids), source.name, len(todo), out)
     prompt = llm.load_topic_prompt(a.prompt)
     out.parent.mkdir(parents=True, exist_ok=True)
     secs = []

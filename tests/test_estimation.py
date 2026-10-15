@@ -13,9 +13,11 @@ def example_gold():
     out = []
     for g, h, n_pop, s, t, nt in rows:
         labels = [(1, 1)] * s + [(1, 0)] * t + [(0, 0)] * nt
-        out += [{"grupa": g, "warstwa": h, "waga": n_pop / len(labels), "tematyczna": a, "sprzeczna": b}
-                for a, b in labels]
-    return pd.DataFrame(out)
+        out += [{"grupa": g, "warstwa": h, "N_h": n_pop, "n_h": len(labels), "waga": n_pop / len(labels),
+                 "tematyczna": a, "sprzeczna": b} for a, b in labels]
+    out = pd.DataFrame(out)
+    out.insert(0, "wypowiedz_id", [f"w{i}" for i in range(len(out))])
+    return out
 
 
 def test_step7_reproduces_example():
@@ -41,6 +43,23 @@ def test_step5_rates_by_stage():
     assert q["reszta_werdykt_TNR"] == pytest.approx(60 * 15 / (60 * 15 + 3 * 9))
 
 
+def test_composition_counts_gold_labels_per_stratum():
+    c = E.composition(example_gold()).set_index(["grupa", "warstwa"])
+    assert c.loc[("prawica", 1), ["n_h", "tematyczne", "sprzeczne"]].tolist() == [20, 18, 14]
+    assert c.loc[("prawica", 2), "sprzeczne"] == 1 and c.loc[("reszta", 3), "N_h"] == 39040
+
+
+def test_verdict_on_whole_sample():
+    gold = example_gold()
+    s3 = gold.loc[gold["warstwa"] == 3, "wypowiedz_id"]
+    gold["werdykt_modelu"] = E.sample_verdicts(gold, dict.fromkeys(s3, 0))
+    assert gold["werdykt_modelu"].tolist() == (gold["warstwa"] == 1).astype(float).tolist()
+    q = E.quality(E.arrays(gold))
+    assert q["prawica_werdykt_bez_filtra_TPR"] == pytest.approx(q["prawica_werdykt_TPR"])
+    gold.loc[gold.index[-1], "werdykt_modelu"] = np.nan
+    assert "prawica_werdykt_bez_filtra_TPR" not in E.quality(E.arrays(gold))
+
+
 def labels(n_right=300, n_rest=300, p_right=0.2, p_rest=0.05, seed=1):
     rng = np.random.default_rng(seed)
     d = pd.DataFrame({"wypowiedz_id": [f"w{i}" for i in range(n_right + n_rest)],
@@ -59,7 +78,7 @@ def test_draw_takes_whole_small_stratum_and_weights():
     for (g, h), cell in sample.groupby(["grupa", "warstwa"]):
         assert len(cell) == min(E.SIZES[h], sizes[(g, h)])
         assert (cell["waga"] == sizes[(g, h)] / len(cell)).all()
-    assert sample["wypowiedz_id"].is_unique
+    assert sample["wypowiedz_id"].is_unique and (sample["ziarno"] == 0).all()
 
 
 def test_stratum_requires_finished_labels():

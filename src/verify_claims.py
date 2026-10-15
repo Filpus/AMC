@@ -4,16 +4,19 @@ For each claim the AR6 index returns the best fragments from the SPMs and from t
 gives a verdict (sprzeczne / zgodne / brak_podstaw) pointing to the deciding fragment. Input:
 data/processed/claims/<claims prompt>__<claims model>.jsonl. Output: data/processed/verdicts/<prompt>__<model>.jsonl,
 one line per claim (twierdzenie_id = <wypowiedz_id>#<nr>). Reruns skip claims done without error.
-  --testy  claims with an expected verdict from data/tests/verdict.csv -> <prompt>__<model>__tests.jsonl
+  --testy     claims with an expected verdict from data/tests/verdict.csv -> <prompt>__<model>__tests.jsonl
+  --ids FILE  claims of `extract_claims.py --ids FILE` (the same FILE); results get the same suffix
 
 Example:
   python src/verify_claims.py
   python src/verify_claims.py --model gemma4:12b --twierdzenia-model gemma4:12b
   python src/verify_claims.py --testy --model gemma4:12b
+  python src/verify_claims.py --ids data/gold/sample.csv
 """
 import argparse
 import logging
 import statistics
+from pathlib import Path
 
 import pandas as pd
 import requests
@@ -59,11 +62,13 @@ def main():
     ap.add_argument("--na-czesc", type=int, default=3, help="fragments from the SPMs and from the TSs each")
     ap.add_argument("--num-ctx", type=int, default=llm.VERDICT_NUM_CTX)
     ap.add_argument("--testy", action="store_true", help="claims with expected verdicts from data/tests/verdict.csv")
+    ap.add_argument("--ids", help="the CSV given to extract_claims.py --ids")
     a = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S")
 
-    source = runs.out_path("claims", a.twierdzenia_prompt, a.twierdzenia_model or a.model)
-    out = runs.out_path(STEP, a.prompt, a.model, "__tests" if a.testy else "")
+    suffix = f"__{Path(a.ids).stem}" if a.ids else ""
+    source = runs.out_path("claims", a.twierdzenia_prompt, a.twierdzenia_model or a.model, suffix)
+    out = runs.out_path(STEP, a.prompt, a.model, "__tests" if a.testy else suffix)
     done = runs.done(out, "twierdzenie_id")
     todo = [c for c in (tests() if a.testy else claims(source)) if c["twierdzenie_id"] not in done]
     log.info("%d claims to judge from %s -> %s", len(todo), TESTS.name if a.testy else source.name, out)

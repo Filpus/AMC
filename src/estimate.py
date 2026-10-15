@@ -2,11 +2,16 @@
 
 Input: data/processed/labels/<model>.csv (label_statements.py). Without annotations: stratum sizes N_h, the rarity
 condition, uncorrected shares and the step 6 regression. With --anotacje (the gold sample of `gold_standard.py losuj`,
-annotated): steps 5 and 7 (stratified bootstrap) and the verdict on the hypothesis. Results:
-data/processed/results/<model>_*.csv.
+annotated): sample composition (true contradicting statements per stratum), steps 5 and 7 (stratified bootstrap) and
+the verdict on the hypothesis. The model verdict for the statements of stratum 3 (not topical by the model) comes from
+`extract_claims.py --ids` and `verify_claims.py --ids` on the sample file; with it step 5 also rates the verdict on all
+statements topical by the gold. Results: data/processed/results/<model>_*.csv.
 
 Examples:
-  python src/estimate.py                                   # after the pipeline: N_h, rarity, step 6
+  python src/estimate.py                                     # after the pipeline: N_h, rarity, step 6
+  python src/gold_standard.py losuj                          # gold sample
+  python src/extract_claims.py --ids data/gold/sample.csv    # model verdict for the whole sample
+  python src/verify_claims.py --ids data/gold/sample.csv
   python src/estimate.py --anotacje data/gold/annotations_FK.csv
 """
 import argparse
@@ -17,6 +22,7 @@ import pandas as pd
 from amc import llm, runs
 from amc import estimation as E
 from amc.paths import PROCESSED, ROOT
+from label_statements import label
 
 GOLD = ROOT / "data" / "gold"
 OUT = PROCESSED / "results"
@@ -29,12 +35,26 @@ def check_design(design, labels):
         raise SystemExit(f"the gold sample was drawn from other labels (N_h differ):\n{pd.concat([drawn, sizes], axis=1)}")
 
 
+def sample_run(design_path, model, claims_prompt, verdict_prompt):
+    """wypowiedz_id -> 0/1 (>= 1 contradicting claim) from `extract_claims.py --ids` and `verify_claims.py --ids` on the
+    sample file; missing when the run is absent or unfinished."""
+    suffix = f"__{design_path.stem}"
+    claims = list(runs.last_lines(runs.out_path("claims", claims_prompt, model, suffix)).values())
+    verdicts = list(runs.last_lines(runs.out_path("verdicts", verdict_prompt, model, suffix), "twierdzenie_id").values())
+    ids = [r["wypowiedz_id"] for r in claims]
+    st, _ = label([{"wypowiedz_id": i, "klimat": 1, "blad": None} for i in ids], claims, verdicts,
+                  pd.DataFrame({"wypowiedz_id": ids}))
+    return dict(zip(st["wypowiedz_id"], st["sprzeczna"]))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--model", default=llm.PIPELINE_MODEL)
     ap.add_argument("--proba", default=str(GOLD / "sample.csv"), help="gold sample design")
     ap.add_argument("--anotacje", help="CSV with wypowiedz_id, tematyczna (0/1), sprzeczna (0/1)")
     ap.add_argument("--powtorzenia", type=int, default=10_000, help="bootstrap resamples")
+    ap.add_argument("--twierdzenia-prompt", default="claims_v1")
+    ap.add_argument("--werdykt-prompt", default="verdict_v1")
     a = ap.parse_args()
     slug = runs.model_slug(a.model)
     labels = pd.read_csv(PROCESSED / "labels" / f"{slug}.csv")
@@ -64,6 +84,16 @@ def main():
     missing = gold["tematyczna"].isna().sum()
     if missing:
         raise SystemExit(f"{missing} statements of the gold sample have no annotation")
+    gold["werdykt_modelu"] = E.sample_verdicts(gold, sample_run(design_path, a.model, a.twierdzenia_prompt,
+                                                                a.werdykt_prompt))
+    no_verdict = int(gold["werdykt_modelu"].isna().sum())
+    if no_verdict:
+        print(f"\nNo model verdict for {no_verdict} statements of stratum 3: run extract_claims.py and verify_claims.py "
+              f"with --ids {design_path}; step 5 skips the verdict on all topical statements")
+    gold.drop(columns=["tekst"], errors="ignore").to_csv(OUT / f"{slug}_gold.csv", index=False)
+    comp = E.composition(gold)
+    comp.to_csv(OUT / f"{slug}_composition.csv", index=False)
+    print(f"\nGold sample composition (gold counts per stratum):\n{comp.to_string(index=False)}")
     step5 = E.summarize(gold, E.quality, a.powtorzenia)
     step7 = E.summarize(gold, E.proportions, a.powtorzenia)
     step5.to_csv(OUT / f"{slug}_quality.csv")
