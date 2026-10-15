@@ -8,7 +8,7 @@ import requests
 from . import text as T
 from .paths import ROOT
 
-OLLAMA = "http://localhost:11434/api/chat"
+OLLAMA = "http://127.0.0.1:11434/api/chat"
 PROMPTS = ROOT / "prompts"
 DEFAULT_MODEL = "SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M"
 MAX_WORDS = 2500
