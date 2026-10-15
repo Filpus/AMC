@@ -47,6 +47,8 @@ Słowniki testowaliśmy na pierwszych pobranych danych, czytając losowe trafien
 | usunięte „eksperci” z markera `nauka` | szum z debat legislacyjnych |
 | tekst wypowiedzi czyszczony przed liczeniem (`amc/text.py`) | tytuł punktu obrad w nagłówku stenogramu („…Narodowego Programu Szczepień”) dawał fałszywe trafienia; wtrącenia z sali to słowa innych osób |
 | naprawiony brakujący przecinek w liście `nauka` | sklejał wzorce „według badań/naukowców” i „WHO” — nie były wykrywane |
+| spacja we wzorcu pasuje też do końca linii (`amc/topics.py`, `_whitespace`) | stenogramy plenarne są łamane co ok. 80 znaków, więc fraza przełamana między liniami („zmiany⏎klimatu”) przepadała; dotyczyło wszystkich tematów, w komisjach tekst nie jest łamany |
+| klimat: `emisj\w* co ?2`, `ets\d?` | stenogram zapisuje „CO 2” ze spacją (wzorzec `co2` prawie nic nie łapał); „ETS1”, „ETS2” bez spacji nie były łapane |
 
 ## Znane ograniczenia
 
@@ -60,6 +62,14 @@ Przykłady trafień do ręcznej kontroli: notatnik `notebooks/01_eda_wypowiedzi.
 `notebooks/eda_wypowiedzi_sceptyczne.html`. Podstawowe zachowanie słowników pilnują testy w `tests/test_topics.py`.
 
 ## Następne kroki
+
+W obecnym planie (temat: klimat, posłowie X kadencji) wypowiedzi o klimacie wybiera model językowy na wszystkich
+wypowiedziach; słownik klimatu służy do porównania z modelem (kolumna `slownik_klimat` w etykietach). Słownik łapie
+„dwutlenek węgla” i „emisję CO2”, ale nie samo „CO2” (stenogram zapisuje „CO 2”, a „co 2” to też „co 2 lata”).
+
+Po poprawce łamania linii i zapisu „CO 2” / „ETS2” (posiedzenia plenarne, wypowiedzi merytoryczne): klimat ≥ 1
+trafienie 2278 → 2675 wypowiedzi, tematyczne (≥ 3) 430 → 558; pozostałe tematy +0–7%, COVID bez zmian. Liczby
+w notatnikach 01–03 są sprzed tej poprawki.
 
 1. Ręcznie ocenić ~100 losowych trafień na temat (`data/gold/`) i zmierzyć precyzję; dla czułości — próbka wypowiedzi bez trafień.
 2. Porównać trafienia z etykietami tematów CAP z ParlaMint / ParlaCAP (kadencje VIII–IX).

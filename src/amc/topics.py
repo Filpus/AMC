@@ -32,9 +32,9 @@ TOPICS = {
     "klimat": [
         r"\bzmian\w* klimat\w*", r"\bkryzys\w* klimat\w*", r"\bkatastrof\w* klimat\w*",
         r"\bocieplen\w* klimat\w*", r"\bglobaln\w* ocieplen\w*", r"\befekt\w* cieplarnian\w*",
-        r"\bgaz\w* cieplarnian\w*", r"\bemisj\w* co2\b", r"\bemisj\w* dwutlenk\w*", r"\bdwutlenk\w* węgla\b",
+        r"\bgaz\w* cieplarnian\w*", r"\bemisj\w* co ?2\b", r"\bemisj\w* dwutlenk\w*", r"\bdwutlenk\w* węgla\b",
         r"\bneutralno\w* klimatyczn\w*", r"\bpolityk\w* klimatyczn\w*", r"\bzielon\w* ład\w*",
-        r"\bdekarbonizacj\w*", r"\bipcc\b", r"\bfit for 55\b", r"\bets\b", r"\bklimatyzm\w*",
+        r"\bdekarbonizacj\w*", r"\bipcc\b", r"\bfit for 55\b", r"\bets\d?\b", r"\bklimatyzm\w*",
     ],
     "energia_jadrowa": [
         r"\belektrown\w* jądrow\w*", r"\benergetyk\w* jądrow\w*", r"\benergi\w* jądrow\w*",
@@ -78,13 +78,18 @@ SKEPTIC = [
 ]
 
 
+def _whitespace(p):
+    # transcripts are wrapped every ~80 characters, so a space in a pattern must also match a line break
+    return p.replace(" ?", r"\s*").replace(" ", r"\s+")
+
+
 def _compile(patterns, flags=re.I):
-    return re.compile("|".join(f"(?:{p})" for p in patterns), flags)
+    return re.compile("|".join(f"(?:{_whitespace(p)})" for p in patterns), flags)
 
 
 TOPIC_RE = {k: _compile(v) for k, v in TOPICS.items()}
 SCIENCE_RE = _compile(SCIENCE_REFS)
-SCIENCE_CASED_RE = re.compile("|".join(SCIENCE_REFS_CASED))
+SCIENCE_CASED_RE = _compile(SCIENCE_REFS_CASED, 0)
 SKEPTIC_RE = _compile(SKEPTIC)
 
 
