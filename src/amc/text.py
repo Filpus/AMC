@@ -41,6 +41,23 @@ def clean_statement(tekst, mowca=None):
     return re.sub(r"[ \t]+", " ", tekst).strip()
 
 
+# nagłówek oświadczenia niewygłoszonego: "10. kadencja, 1. posiedzenie, 5. dzień - Poseł Jan Kowalski"
+NAGLOWEK_POSIEDZENIA = re.compile(r"^[ \t]*\d+\. kadencja, \d+\. posiedzenie[^\n]*(?:\n|$)", re.M)
+_FUNKCJA = (r"(?:Poseł|Posłanka|Wicemarszałek|Marszałek|Minister|Wiceminister|Prezes|Sekretarz|Podsekretarz|"
+            r"Przewodnicząc[ya]|Prezydent|Szef|Rzecznik|Prokurator|Członek|Przedstawiciel\w*|Zastępca)")
+_SLOWO = r"[A-ZĄĆĘŁŃÓŚŹŻ][\w'-]*"
+_LACZNIK = r"i|w|we|ds\.|do|spraw|stanu|van|vel|von|de|da|di|del|der|la|le|[-–]"
+# etykieta mówcy na początku linii: "Wicemarszałek Piotr Zgorzelski:", "Poseł Szymon Szynkowski vel Sęk:",
+# "Sekretarz Stanu w Ministerstwie Zdrowia Jan Kowalski:"
+ETYKIETA_MOWCY = re.compile(rf"^(?P<funkcja>{_FUNKCJA})(?:[ \t]+(?:{_SLOWO},?|{_LACZNIK}))*?[ \t]+{_SLOWO}[ \t]*:", re.M)
+
+
+def mask_speakers(tekst):
+    """Tekst dla modelu i anotatora: bez nazwisk w etykietach mówców i bez nagłówka posiedzenia."""
+    tekst = NAGLOWEK_POSIEDZENIA.sub("", tekst)
+    return ETYKIETA_MOWCY.sub(lambda m: f"{m['funkcja']} …:", tekst)
+
+
 def word_count(texts):
     """Liczba słów dla serii tekstów (pandas.Series)."""
     return texts.fillna("").str.split().str.len().fillna(0).astype(int)

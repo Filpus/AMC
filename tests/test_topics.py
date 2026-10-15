@@ -15,6 +15,19 @@ def test_polish_inflection_with_string_dtype():
     assert f["energia_jadrowa"].tolist() == [0, 1]
 
 
+def test_phrases_broken_across_lines():
+    f = topics.flag_topics(pd.Series(["skutki zmiany\nklimatu", "tzw.\npandemia", "pyłu PM\n10"]))
+    assert f["klimat"].tolist() == [1, 0, 0]
+    assert f["sceptycyzm"].tolist() == [0, 1, 0]
+    assert f["smog"].tolist() == [0, 0, 1]
+
+
+def test_climate_co2_and_ets_spellings():
+    f = topics.flag_topics(pd.Series(["emisji CO 2", "emisja CO2", "od 2027 r. wchodzi ETS2", "ETS1 i ETS 2",
+                                      "co 2 lata", "emisji\nCO 2"]))
+    assert f["klimat"].tolist() == [1, 1, 1, 2, 0, 1]
+
+
 def test_science_markers_who_and_pan():
     f = topics.flag_topics(pd.Series(["Według WHO i według badań — tak mówi PAN.", "Panie pośle, pan nie ma racji."]))
     assert f.loc[0, "nauka"] == 3

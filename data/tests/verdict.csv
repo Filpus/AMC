@@ -1,0 +1,15 @@
+test,oczekiwane,ar6_oczekiwane,twierdzenie,twierdzenie_en
+w01,sprzeczne,WGI SPM A.1,Wpływ człowieka na ocieplenie klimatu jest znikomy.,Human influence on climate warming is negligible.
+w02,zgodne,WGI SPM A.3.2,"Ulewy stały się częstsze i intensywniejsze, głównie z powodu zmiany klimatu wywołanej przez człowieka.","Heavy precipitation has become more frequent and intense, mainly because of human-induced climate change."
+w03,brak_podstaw,,Polska odpowiada za mniej niż 1% światowej emisji CO2.,Poland accounts for less than 1% of global CO2 emissions.
+w04,sprzeczne,WGI SPM A.1,"Obecne ocieplenie jest naturalne, bo klimat zmieniał się zawsze.","The current warming is natural, because the climate has always changed."
+w05,zgodne,WGI SPM A.1.7,Poziom morza rośnie dziś szybciej niż na początku XX wieku.,Sea level is rising faster today than in the early 20th century.
+w06,zgodne,WGI SPM A.2.1,Stężenie CO2 w atmosferze jest najwyższe od co najmniej 2 milionów lat.,Atmospheric CO2 concentration is the highest in at least 2 million years.
+w07,sprzeczne,WGII SPM B.1,Globalne ocieplenie ma więcej skutków korzystnych niż niekorzystnych.,Global warming has more beneficial than harmful effects.
+w08,sprzeczne,WGIII SPM C.4,Odnawialne źródła energii nie są w stanie istotnie ograniczyć emisji.,Renewable energy sources cannot significantly reduce emissions.
+w09,zgodne,WGIII SPM C.1,"Ograniczenie ocieplenia do 1,5°C wymaga szybkiej i głębokiej redukcji emisji gazów cieplarnianych.",Limiting warming to 1.5°C requires rapid and deep reductions in greenhouse gas emissions.
+w10,sprzeczne,,Za 10 lat zmiana klimatu doprowadzi do końca świata.,In 10 years climate change will bring about the end of the world.
+w11,brak_podstaw,,Unia Europejska odpowiada za 7% światowych emisji CO2.,The European Union accounts for 7% of global CO2 emissions.
+w12,sprzeczne,WGI SPM D.1,Osiągnięcie zeroemisyjności przez całą Unię Europejską nie wpłynie na powstrzymanie zmian klimatu.,Reaching net zero emissions across the whole European Union will not help stop climate change.
+w13,brak_podstaw,,System handlu emisjami EU ETS podnosi ceny energii elektrycznej w Polsce.,The EU Emissions Trading System raises electricity prices in Poland.
+w14,brak_podstaw,,Chiny odpowiadają dziś za około jedną trzecią światowej emisji CO2.,China currently accounts for about one third of global CO2 emissions.

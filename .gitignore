@@ -9,12 +9,14 @@ __pycache__/
 .ipynb_checkpoints/
 # korpus gotowy do analizy (odtwarzalny: python src/build_corpus.py)
 data/processed/*.parquet
-# strona do anotacji (odtwarzalna: python src/gold_view.py)
-data/gold/*_view.html
+# strona do anotacji (odtwarzalna: python src/gold_standard.py strona)
+data/gold/*.html
 
 # pliki lokalne
 *.local
 *.local.*
 .env
-data/raw/factcheck/
 articles/
+
+# AR6: PDF-y, fragmenty i embeddingi (prawa IPCC; odtwarzalne: python src/build_ar6.py)
+data/ar6/
