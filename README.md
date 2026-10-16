@@ -19,7 +19,7 @@ pipeline  classify_topic.py     czy wypowiedź dotyczy klimatu (cała populacja:
           extract_claims.py     twierdzenia mówcy z wypowiedzi o klimacie
           verify_claims.py      werdykt wobec AR6: sprzeczne / zgodne / brak_podstaw (RAG; albo PaperQA2)
           label_statements.py   wypowiedź sprzeczna = co najmniej jedno twierdzenie sprzeczne
-gold      gold_standard.py      próba warstwowa według etykiet modelu, strona do anotacji, kappa drugiego anotatora
+gold      gold_standard.py      próba warstwowa według etykiet modelu, strona do anotacji (jeden anotator; kappa drugiego anotatora opcjonalnie)
 wynik     estimate.py           jakość etykiet (TPR/TNR/F1 z wagami), odsetki z golda, test hipotezy
 ```
 
