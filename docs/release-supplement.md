@@ -24,8 +24,8 @@ Uwagi:
 - Krok 2. Wybór wypowiedzi tematycznych o klimacie: klasyfikator NLI lub LLM uruchamiany na wszystkich wypowiedziach (bez filtra słów kluczowych).
 - Krok 3. Werdykt: model NLI lub LLM porównuje wypowiedź z dokumentem konsensusu (AR6 IPCC, WGI–WGIII) i zwraca sprzeczne / zgodne / brak podstaw.
 - Krok 4. Gold standard: ręcznie oznaczona próbka dla klasyfikatora tematycznego i weryfikatora.
-  Sposób losowania: losowanie warstwowe z nadreprezentowaniem. Warstwy w każdej grupie (prawica, reszta): 1) model: tematyczna i sprzeczna (20); 2) model: tematyczna i niesprzeczna (15); 3) model: nietematyczna (15). TPR, TNR i F1 liczymy z wagami (odwrotność prawdopodobieństwa wylosowania). Szczegóły: gold-standard-blueprint.md, wariant B.
-  Adnotacja: jeden adnotator według zamrożonego codebooka; zakładamy, że etykiety gold standardu są poprawne (bez miary zgodności).
+  Sposób losowania: losowanie warstwowe z nadreprezentowaniem. Warstwy w każdej grupie (prawica, reszta): 1) model: tematyczna i sprzeczna (20); 2) model: tematyczna i niesprzeczna (15); 3) model: nietematyczna (15). TPR, TNR i F1 liczymy z wagami (odwrotność prawdopodobieństwa wylosowania).
+  Adnotacja: dwóch adnotatorów według zamrożonego codebooka dzieli próbkę po połowie (po 50 wypowiedzi, bez części wspólnej), więc każda wypowiedź ma jedną etykietę; zakładamy, że etykiety gold standardu są poprawne (bez miary zgodności).
   Wielkość próby: 100 (po 50 na grupę)
 
 - Krok 5. TPR, TNR i F1 osobno w grupach (prawica, reszta), dla obu etapów (tematyczność, werdykt) i dla etykiety końcowej.
@@ -50,7 +50,7 @@ Uwagi:
 - **Zjawisko:** w wyniku etapu eksploracji wynika, że kwestie klimatyczne są relatywnie często poruszaną kwestią tematyczną podlegającą konsensusowi naukowemu.
 - **Źródło weryfikacji:** badanie ograniczone do jednego tematu (klimat) i jednego dokument odniesienia (AR6).
 - **Zasoby obliczeniowe:** zespół ma dostęp do narzędzi LLM uruchamianych w środowiskach chmurowych oraz dysponuje kartami graficznymi w przypadku potrzeby lokalnego przetwarzania. Model jest uruchamiany na wszystkich wypowiedziach, więc koszt całego przebiegu musi mieścić się w budżecie.
-- **Praca ręczna:** gold standard o ograniczonej wielkości (100 wypowiedzi, jeden adnotator) mieści się w harmonogramie (zajęcia 3: codebook i gold standard, zajęcia 4: pierwszy wynik na pełnych danych). 
+- **Praca ręczna:** gold standard o ograniczonej wielkości (100 wypowiedzi, dwóch adnotatorów po 50) mieści się w harmonogramie (zajęcia 3: codebook i gold standard, zajęcia 4: pierwszy wynik na pełnych danych). 
 - **Ryzyko:** rzadkość zjawiska może uniemożliwić wykrycie efektu. Według zasad AMC poprawnie uzasadniony wynik negatywny lub wynik nierozstrzygający wskutek małej liczby danych jest pełnoprawnym rezultatem. 
 
 

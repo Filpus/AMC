@@ -3,10 +3,9 @@
 Instrukcja anotacji gold standardu i podstawa promptów klasyfikatora. Zakres i etykiety według suplementu karty
 eksploracji, układ kategorii według Halterman, Keith (2025): definicja, kryteria włączenia i wyłączenia, przykłady.
 
-**Status (2026-10-16):** wersja poprawiona, zgodna z suplementem B (light-release-supplement-B.md) i z repo AMC
-(prompty `topic_v0`, `claims_v1`, `verdict_v1`, próba `data/gold/sample.csv`). Zmiany względem codebook.md:
-codebook-correction-explanation.md. Według tej wersji oznaczamy gold standard. Decyzje i alternatywy są w sekcji 10,
-pytania w sekcji 11.
+**Status (2026-10-19):** wersja zgodna z suplementem (`docs/release-supplement.md`) i z pipeline'em (prompty
+`topic_v0`, `claims_v1`, `verdict_v1`, próba `data/gold/sample.csv`). Według tej wersji oznaczyliśmy gold standard.
+Decyzje i alternatywy są w sekcji 10, pytania w sekcji 11.
 
 ## 1. Zakres
 
@@ -53,7 +52,7 @@ wypowiedź ──> o klimacie? ──tak──> twierdzenia (stanowisko mówcy) 
 
 Twierdzenie oceniamy zawsze w kontekście całej wypowiedzi. Model wypełnia wszystkie pola (prompty `topic_v0`,
 `claims_v1`, `verdict_v1`). Anotator gold standardu przechodzi tę samą drogę według tych samych reguł, ale zapisuje
-tylko etykiety wypowiedzi (gold-standard-blueprint.md): `tematyczna` (to samo co `klimat`), `sprzeczna` (tylko przy
+tylko etykiety wypowiedzi: `tematyczna` (to samo co `klimat`), `sprzeczna` (tylko przy
 tematycznej) i opcjonalny `komentarz` do analizy błędów (sekcja 8). Twierdzeń i fragmentów AR6 nie zapisuje.
 
 ## 3. Wypowiedź o klimacie (`klimat`, krok 2)
@@ -202,8 +201,8 @@ Jakość modelu liczymy na poziomie wypowiedzi:
 
 TPR/TNR/F1 pochodzą z kroku 5 suplementu. Miary modelu liczymy z wagami warstw, osobno dla prawicy i reszty.
 Twierdzenia służą do uzasadnienia etykiety i analizy błędów; miar na nich nie liczymy, bo anotator i model wypisują
-różne listy. Zgodności anotatorów (kappa) nie liczymy, bo anotator jest jeden; jeśli dojdzie drugi, stosujemy
-light-release-extension-kappa.md.
+różne listy. Zgodności anotatorów (kappa) nie liczymy, bo każdą wypowiedź oznaczyła jedna osoba (sekcja 8);
+na wypadek podwójnej anotacji części próby `gold_standard.py` ma polecenia `podproba` i `zgodnosc`.
 
 **Decyzja: wypowiedzi w mianowniku** (opcja a niżej), jak w suplemencie i w repo. Poniżej zostawiamy argumenty, które
 rozważaliśmy. Twierdzenia są potrzebne w obu wariantach: przez
@@ -229,10 +228,9 @@ wszystkich tematów, starszy prompt): twierdzenie naukowe o klimacie model potwi
 
 ## 8. Gold standard
 
-**Losowanie.** 100 wypowiedzi z populacji (sekcja 1), po 50 na grupę, według suplementu B (krok 4) i
-gold-standard-blueprint.md, wariant B. Warstwy to grupa × etykieta modelu z pełnego przebiegu pipeline'u (Gemma 4 12B),
-więc wymagają wcześniejszego przebiegu modelu na całej populacji. Wagi = N / n. Próba jest wylosowana (ziarno 0):
-`AMC/data/gold/sample.csv`.
+**Losowanie.** 100 wypowiedzi z populacji (sekcja 1), po 50 na grupę, według suplementu (krok 4). Warstwy to grupa
+× etykieta modelu z pełnego przebiegu pipeline'u (Gemma 4 12B), więc wymagają wcześniejszego przebiegu modelu na całej
+populacji. Wagi = N / n. Próba jest wylosowana (ziarno 0): `data/gold/sample.csv`.
 
 | warstwa | N | n | waga |
 |---|---|---|---|
@@ -246,19 +244,22 @@ więc wymagają wcześniejszego przebiegu modelu na całej populacji. Wagi = N /
 Warstwy „nietematyczna” mają duże wagi, więc oszacowanie tego, co gubi klasyfikator tematyczny, będzie mało precyzyjne.
 Żadna z wypowiedzi cytowanych w codebooku (sekcje 1, 5 i 9) nie trafiła do próby.
 
-**Anotator.** Jedna osoba z zespołu oznacza całą próbę. Nie ma drugiego anotatora ani rozstrzygającego; zakładamy, że
-etykiety gold standardu są poprawne (suplement B, krok 4).
+**Anotatorzy.** Próbę podzieliło dwóch członków zespołu: Filip Puszko (FP) oznaczył wypowiedzi 1–50, Damian Kwolek
+(DK) wypowiedzi 51–100 (numer `kolejnosc`, kolejność losowa, więc obie części obejmują obie grupy i wszystkie warstwy).
+Pliki: `data/gold/annotations_FP.csv` i `annotations_DK.csv`. Każdą wypowiedź oznaczyła jedna osoba: nie ma części
+wspólnej ani rozstrzygającego, więc zgodności anotatorów nie znamy i zakładamy, że etykiety gold standardu są poprawne
+(suplement, krok 4).
 
 **Bez pilotażu.** Próba jest już wylosowana, więc codebook nie przechodzi pilotażu przed anotacją.
 
 **Zasady:**
-- anotacja przed zobaczeniem wyników modelu;
+- strona do anotacji nie pokazuje etykiet modelu ani warstwy;
 - anotator widzi tylko tekst, bez mówcy, klubu i daty; narzędzie maskuje też nazwiska we wtrąceniach prowadzącego
   („Poseł …:”). Treść może jednak zdradzać klub („Konfederacja wychodzi z tego stanowiska”);
 - przy wątpliwości anotator wybiera etykietę i dodaje komentarz. Wypowiedzi nie odrzucamy (u Coan
   i in. „unable to decide” wracało do puli, co u nas zawyżyłoby TPR i TNR).
 
-**Ograniczenie.** Anotator zna hipotezę. Ukrycie mówcy i klubu zmniejsza ryzyko, że wpłynie to na oceny, ale go
+**Ograniczenie.** Anotatorzy znają hipotezę. Ukrycie mówcy i klubu zmniejsza ryzyko, że wpłynie to na oceny, ale go
 nie usuwa.
 
 ## 9. Przykłady z korpusu
@@ -309,14 +310,14 @@ werdykt); nie wchodzą do gold standardu.
 | poziom porównań | wypowiedź (`klimat`, `sprzeczna`) | wspólna lista twierdzeń; dopasowanie po cytacie |
 | atrybucja | sama zasada stanowiska mówcy w parafrazie, bez osobnego pola (sekcja 5) | pole z czterema wartościami; pole uproszczone (`wlasne` / `polemika` / `neutralny`) |
 | CARDS | tylko literatura (reguła wniosku mówcy, sekcja 4) | ściąga z podkategoriami; pole `cards` |
-| warstwy | grupa × etykieta modelu, 20 / 15 / 15 na grupę (suplement B) | grupa × filtr, 100 + 25 na grupę; dwie osobne próby |
+| warstwy | grupa × etykieta modelu, 20 / 15 / 15 na grupę (suplement) | grupa × filtr, 100 + 25 na grupę; dwie osobne próby |
 | ślepota | bez mówcy, klubu i daty | wszystko widoczne; bez mówcy, ale z poprzednią wypowiedzią |
 | `brak_podstaw` | jedna etykieta | „AR6 się tym nie zajmuje” i „nie znaleziono” osobno |
 | pewność AR6 | bez progu: liczy się każde ustalenie AR6 (pytanie 7) | od *likely* / *medium confidence*; od *very likely* / *high confidence* |
 | źródła AR6 | SPM → TS, bez rozdziałów i bez SYR (jak w modelu) | tylko SPM; rozdziały przez odsyłacze; dodatkowo SYR |
 | dane krajowe | twierdzenia, zwykle `brak_podstaw` | wyłączyć |
 | trudne przypadki | komentarz anotatora | flaga `trudny` z komentarzem |
-| anotatorzy | jeden anotator z zespołu, bez pilotażu (suplement B) | dwie osoby i rozstrzygający, pilotaż 1 × 20; szkolenie i test kwalifikacyjny (jak u Coan i in.) |
+| anotatorzy | dwie osoby z zespołu, każda połowa próby, bez części wspólnej i bez pilotażu (sekcja 8) | jedna osoba całą próbę; część wspólna do kappy; dwie osoby i rozstrzygający, pilotaż 1 × 20; szkolenie i test kwalifikacyjny (jak u Coan i in.) |
 | ministrowie-posłowie | w populacji | wyłączyć |
 | Republikanie, Kukiz15 | reszta | wariant odporności z nimi w prawicy |
 | zmiany klubów | klub w dniu wypowiedzi (także okresy bez klubu) | klub z dnia pobrania; klub, do którego poseł trafił później |
@@ -325,7 +326,7 @@ werdykt); nie wchodzą do gold standardu.
 
 1. ~~**Lead:** co jest mianownikiem?~~ Rozstrzygnięte: wypowiedzi o klimacie (sekcja 7).
 2. **Lead:** zostajemy przy klubie w dniu wypowiedzi (sekcja 1); czy dopisać skutki zmian klubów jako osobne ograniczenie?
-3. Kto oznacza gold? (jedna osoba, sekcja 8)
+3. ~~Kto oznacza gold?~~ Rozstrzygnięte: FP i DK, po połowie próby (sekcja 8).
 4. ~~Atrybucja (sekcja 5): osobne pole czy sama zasada w parafrazie?~~ Rozstrzygnięte: sama zasada.
 5. ~~Wniosek mówcy (sekcja 4): fakt i wniosek zapisujemy jako dwa twierdzenia czy jako jedno?~~ Rozstrzygnięte: dwa.
 6. Uwagi do decyzji z sekcji 10.
