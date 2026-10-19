@@ -38,7 +38,7 @@ a trafia do reszty). Proponujemy opisać to jako osobne ograniczenie (pytanie 2)
 ## 2. Przebieg anotacji
 
 ```
-wypowiedź ──> o klimacie? ──tak──> twierdzenia ──> atrybucja ──> werdykt (AR6) ──> sprzeczna (0/1)
+wypowiedź ──> o klimacie? ──tak──> twierdzenia (stanowisko mówcy) ──> werdykt (AR6) ──> sprzeczna (0/1)
                           └─nie──> koniec (poza mianownikiem)
 ```
 
@@ -46,15 +46,15 @@ wypowiedź ──> o klimacie? ──tak──> twierdzenia ──> atrybucja �
 |---|---|---|
 | `klimat` | wypowiedź | `1` / `0` (sekcja 3) |
 | `cytat` | twierdzenie | dosłowny fragment wypowiedzi, na którym opiera się twierdzenie |
-| `twierdzenie` | twierdzenie | parafraza samodzielna (sekcja 4) |
-| `atrybucja` | twierdzenie | `wlasne` / `cytat_zgoda` / `cytat_polemika` / `cytat_neutralny` (sekcja 5) |
+| `twierdzenie` | twierdzenie | stanowisko mówcy, parafraza samodzielna (sekcje 4 i 5) |
 | `werdykt` | twierdzenie | `sprzeczne` / `zgodne` / `brak_podstaw` (sekcja 6) |
 | `ar6` | twierdzenie | identyfikator fragmentu i cytat, np. `WGI SPM A.1` „It is unequivocal that human influence has warmed…” |
 | `sprzeczna` | wypowiedź | `1`, jeśli co najmniej jedno twierdzenie jest `sprzeczne`, inaczej `0`; tylko dla `klimat = 1` |
-| `trudny`, `komentarz` | wypowiedź | flaga i komentarz do analizy błędów (sekcja 8) |
 
-Anotacja ma dwie fazy: najpierw `klimat`, twierdzenia i atrybucja, potem werdykt z AR6 pod ręką. Twierdzenie oceniamy
-zawsze w kontekście całej wypowiedzi.
+Twierdzenie oceniamy zawsze w kontekście całej wypowiedzi. Model wypełnia wszystkie pola (prompty `topic_v0`,
+`claims_v1`, `verdict_v1`). Anotator gold standardu przechodzi tę samą drogę według tych samych reguł, ale zapisuje
+tylko etykiety wypowiedzi (gold-standard-blueprint.md): `tematyczna` (to samo co `klimat`), `sprzeczna` (tylko przy
+tematycznej) i opcjonalny `komentarz` do analizy błędów (sekcja 8). Twierdzeń i fragmentów AR6 nie zapisuje.
 
 ## 3. Wypowiedź o klimacie (`klimat`, krok 2)
 
@@ -69,7 +69,8 @@ od długości wypowiedzi.
 - zmianę klimatu, jej przyczyny, skutki i trendy, stan nauki o klimacie;
 - politykę klimatyczną: redukcję emisji, ETS i ETS2, Zielony Ład, Fit for 55, dekarbonizację, neutralność klimatyczną,
   adaptację, OZE i inne technologie jako sposób ograniczania emisji;
-- negowanie zmiany klimatu lub wyśmiewanie jej jako ideologii, jeśli mówca coś o niej twierdzi.
+- negowanie zmiany klimatu lub wyśmiewanie jej jako ideologii, jeśli mówca coś o niej twierdzi, także zaprzeczanie, że
+  dane zjawisko (powódź, susza) ma związek ze zmianą klimatu.
 
 **Wyłączamy:**
 - „klimat” w innym znaczeniu (polityczny, inwestycyjny, społeczny);
@@ -86,6 +87,10 @@ wypowiedź.
 
 **Definicja.** Twierdzenie o stanie świata (fakt, zależność przyczynowa, trend, prognoza) dotyczące klimatu albo
 działań wobec jego zmiany, które da się porównać z AR6.
+
+**Test.** Twierdzenie zapisujemy tylko wtedy, gdy raport taki jak AR6 mógłby je potwierdzić albo mu zaprzeczyć, choćby
+na poziomie świata albo regionu (dane o emisjach Polski i UE też się liczą). Twierdzenia o osobach, wydarzeniach
+politycznych, przepisach, procedurach albo kwotach pomijamy.
 
 **Włączamy:**
 - przyczyny, skutki i trendy („emisje CO2 ocieplają klimat”, „susze są skutkiem zmiany klimatu”);
@@ -106,51 +111,44 @@ działań wobec jego zmiany, które da się porównać z AR6.
 - twierdzenia o osobach i wydarzeniach politycznych (kto co powiedział, kto finansuje);
 - smog i jakość powietrza.
 
-**Wniosek mówcy.** Gdy fakt, pytanie retoryczne albo sarkazm służy wnioskowi, zapisujemy wniosek jako twierdzenie
-i to on dostaje werdykt. Przykład z Coan i in. (2021): „dziś jest zimno” jest prawdą, „dziś jest zimno, więc nie ma
-ocieplenia” już nie. Wniosek zapisujemy tylko wtedy, gdy wypowiedź go wyraża albo jednoznacznie sugeruje („więc”,
-pytanie retoryczne, zestawienie z tezą przeciwną, czytelna ironia). Jeśli trzeba go zgadywać, nie zapisujemy.
+**Wniosek mówcy.** Gdy fakt, pytanie retoryczne albo sarkazm służy wnioskowi, zapisujemy osobno fakt i wniosek, a werdykt
+dostaje każde z nich. Przykład z Coan i in. (2021): „dziś jest zimno” jest prawdą, „dziś jest zimno, więc nie ma
+ocieplenia” już nie; zapisujemy „dziś jest zimno” i „nie ma globalnego ocieplenia”. Wniosek zapisujemy tylko wtedy, gdy
+wypowiedź go wyraża albo jednoznacznie sugeruje („więc”, pytanie retoryczne, zestawienie z tezą przeciwną, czytelna
+ironia). Jeśli trzeba go zgadywać, nie zapisujemy.
 
-**Do decyzji: jedno czy dwa twierdzenia.** Wypowiedź `10_7_2024-03-07_60`: „Zmiany klimatu, jak wiemy, na Ziemi
-występowały zawsze. Jest pytanie o ich przyczyny i tutaj naukowcy się spierają, jaki rzeczywisty wpływ ma człowiek na
-zmiany w klimacie.” Można ją zapisać na dwa sposoby:
+Przykład: wypowiedź `10_7_2024-03-07_60`: „Zmiany klimatu, jak wiemy, na Ziemi występowały zawsze. Jest pytanie o ich
+przyczyny i tutaj naukowcy się spierają, jaki rzeczywisty wpływ ma człowiek na zmiany w klimacie.”
 
-| wariant | `twierdzenie` | `werdykt` |
-|---|---|---|
-| dwa twierdzenia | (a) Klimat Ziemi zmieniał się także w przeszłości. | `zgodne` |
-| | (b) Nauka nie ustaliła, czy obecna zmiana klimatu wynika z działalności człowieka. | `sprzeczne` (WGI SPM A.1) |
-| jedno twierdzenie | Skoro klimat zmieniał się zawsze, nauka nie ustaliła, czy obecna zmiana wynika z działalności człowieka. | `sprzeczne` (WGI SPM A.1) |
+| `twierdzenie` | `werdykt` |
+|---|---|
+| (a) Klimat Ziemi zmieniał się także w przeszłości. | `zgodne` |
+| (b) Nauka nie ustaliła, czy obecna zmiana klimatu wynika z działalności człowieka. | `sprzeczne` (WGI SPM A.1) |
 
-Etykieta wypowiedzi jest w obu wariantach taka sama (`sprzeczna = 1`). Dwa twierdzenia pokazują, na jakim fakcie mówca
-opiera wniosek, i są zgodne z zasadą „jedno twierdzenie na wiersz”. Jedno twierdzenie jest prostsze i bliższe temu, co
-mówca chce przekazać. Różnica ma znaczenie, jeśli mianownikiem będą twierdzenia (sekcja 7): wtedy fakt zapisany
-osobno dokłada do mianownika twierdzenie `zgodne` i obniża odsetek.
+Fakt zapisany osobno nie zmienia etykiety wypowiedzi (`sprzeczna = 1` przez wniosek), bo mianownikiem są wypowiedzi
+(sekcja 7).
 
 **Parafraza:** jedno twierdzenie na wiersz, zrozumiałe bez wypowiedzi; liczby i stopień pewności mówcy zachowane; przy
 polemice zapisujemy stanowisko mówcy.
 
-## 5. Atrybucja
+## 5. Stanowisko mówcy
 
-| wartość | kiedy | co oceniamy w werdykcie |
-|---|---|---|
-| `wlasne` | mówca twierdzi sam | twierdzenie |
-| `cytat_zgoda` | mówca przytacza twierdzenie (także „jak pokazują naukowcy”) i się z nim zgadza | twierdzenie |
-| `cytat_polemika` | mówca przytacza twierdzenie, żeby je odrzucić albo wyśmiać | **stanowisko mówcy**, czyli zaprzeczenie przytoczonego twierdzenia |
-| `cytat_neutralny` | mówca relacjonuje bez oceny | nie oceniamy |
+Zapisujemy tylko to, co mówca sam twierdzi albo przyjmuje:
 
-Przykład polemiki: `10_22_2024-11-20_257` (sekcja 9.2). W próbie LLM etap A zapisał je jako `wlasne`, czyli
-z odwrotnym znakiem.
+| mówca | co zapisujemy i oceniamy |
+|---|---|
+| twierdzi sam | twierdzenie |
+| przytacza twierdzenie z aprobatą (także „jak pokazują naukowcy”) | twierdzenie |
+| przytacza twierdzenie, żeby je odrzucić albo wyśmiać (polemika) | **stanowisko mówcy**, czyli zaprzeczenie przytoczonego twierdzenia |
+| relacjonuje cudze twierdzenie bez oceny | nic |
 
-**Do decyzji: osobne pole czy sama zasada.** Zasada jest potrzebna w każdym wariancie: posłowie często przytaczają
-przeciwnika, żeby się z nim nie zgodzić. Bez niej wypowiedź obalająca argumenty negujących zmianę klimatu dostałaby
-`sprzeczna = 1`, a taki błąd częściej dotyczyłby reszty. Opcje:
-- **zostawić pole**: da się policzyć, jak często model myli polemikę z twierdzeniem własnym;
-- **usunąć pole**, zasadę stosować w parafrazie (stanowisko mówcy, bez cytatów neutralnych): mniej pracy, ale błędów
-  modelu na polemikach nie policzymy bez ponownego czytania wypowiedzi.
+Przykład polemiki: `10_22_2024-11-20_257` (sekcja 9.2).
 
-Wybór nie zmienia kappy ani TPR/TNR, bo liczymy je na `sprzeczna` (sekcja 7). W literaturze takiego pola nie ma:
-ClaimBuster ocenia, czy zdanie warto sprawdzić, CARDS oznacza akapity ze źródeł kontrariańskich (obecność twierdzenia
-oznacza tam poparcie), a Rojas i in. (2024) rozpoznają stanowisko klasyfikatorem całego tekstu.
+Zasada jest potrzebna, bo posłowie często przytaczają przeciwnika, żeby się z nim nie zgodzić. Bez niej wypowiedź
+obalająca argumenty negujących zmianę klimatu dostałaby `sprzeczna = 1`, a taki błąd częściej dotyczyłby reszty.
+Rodzaju przytoczenia nie zapisujemy w osobnym polu: zasadę stosujemy od razu w parafrazie. W literaturze takiego pola
+nie ma: ClaimBuster ocenia, czy zdanie warto sprawdzić, CARDS oznacza akapity ze źródeł kontrariańskich (obecność
+twierdzenia oznacza tam poparcie), a Rojas i in. (2024) rozpoznają stanowisko klasyfikatorem całego tekstu.
 
 ## 6. Werdykt
 
@@ -166,7 +164,13 @@ jego ustalenia („wpływ człowieka na klimat jest znikomy”) albo je wyolbrzy
 **Liczby i statystyki.** `sprzeczne` albo `zgodne` tylko wtedy, gdy fragment AR6 podaje tę samą wielkość co
 twierdzenie: ten sam obszar (świat, region, kraj), ten sam gaz (CO2 albo wszystkie gazy cieplarniane), ten sam okres
 i tę samą miarę (emisja roczna, skumulowana, na mieszkańca). Gdy fragment podaje inną wielkość, werdykt to
-`brak_podstaw`, nawet jeśli liczby się różnią albo przypadkiem się zgadzają. Europa to nie Unia Europejska.
+`brak_podstaw`, nawet jeśli liczby się różnią albo przypadkiem się zgadzają. Europa to nie Unia Europejska. Gdy
+twierdzenie nie mówi, o jaki okres albo miarę chodzi, a fragment podaje konkretną, to też inna wielkość. Liczb
+z rysunków, których nie da się jednoznacznie przypisać do regionu, nie używamy.
+
+**Koszty i ceny.** Twierdzenia o kosztach, cenach, konkurencyjności gospodarki i tempie polityki klimatycznej („ETS
+podnosi ceny prądu”, „transformacja jest za droga”) to ocena polityczna, a nie nauka o klimacie: werdykt `brak_podstaw`.
+Takich twierdzeń w ogóle nie wypisujemy (sekcja 4); ta reguła obejmuje te, które mimo to trafią do oceny.
 
 **Redukcja emisji w jednym regionie.** Twierdzenie, że redukcja emisji w jednym kraju albo regionie (np. w Polsce,
 w UE) nic nie zmieni w sprawie klimatu, przeczy ustaleniu AR6, że ocieplenie zależy od skumulowanej emisji CO2 (WGI
@@ -251,7 +255,7 @@ etykiety gold standardu są poprawne (suplement B, krok 4).
 - anotacja przed zobaczeniem wyników modelu;
 - anotator widzi tylko tekst, bez mówcy, klubu i daty; narzędzie maskuje też nazwiska we wtrąceniach prowadzącego
   („Poseł …:”). Treść może jednak zdradzać klub („Konfederacja wychodzi z tego stanowiska”);
-- przy wątpliwości anotator wybiera etykietę i dodaje flagę `trudny` z komentarzem. Wypowiedzi nie odrzucamy (u Coan
+- przy wątpliwości anotator wybiera etykietę i dodaje komentarz. Wypowiedzi nie odrzucamy (u Coan
   i in. „unable to decide” wracało do puli, co u nas zawyżyłoby TPR i TNR).
 
 **Ograniczenie.** Anotator zna hipotezę. Ukrycie mówcy i klubu zmniejsza ryzyko, że wpłynie to na oceny, ale go
@@ -276,8 +280,8 @@ Fragmenty AR6 oznaczone „do wskazania” anotator wskazuje sam w SPM lub TS (s
 
 | wypowiedź | fragment | zapis | werdykt |
 |---|---|---|---|
-| `10_7_2024-03-07_60` | „Zmiany klimatu, jak wiemy, na Ziemi występowały zawsze. Jest pytanie o ich przyczyny i tutaj naukowcy się spierają, jaki rzeczywisty wpływ ma człowiek…” | (a) klimat zmieniał się zawsze; (b) wniosek: nauka nie ustaliła, czy obecna zmiana wynika z działalności człowieka (wariant dwóch twierdzeń; do decyzji, sekcja 4) | (a) `zgodne`; (b) `sprzeczne` (WGI SPM A.1) |
-| `10_22_2024-11-20_257` | „Pani minister wspomniała tu o konieczności walki z emisją CO2, co się zasadza na przekonaniu, że emisja CO2 powoduje globalne ocieplenie. (…) Nawet przy założeniu, że ta mitologia jest prawdziwa…” | `cytat_polemika`: związek emisji CO2 z ociepleniem to mit | `sprzeczne` (WGI SPM A.1) |
+| `10_7_2024-03-07_60` | „Zmiany klimatu, jak wiemy, na Ziemi występowały zawsze. Jest pytanie o ich przyczyny i tutaj naukowcy się spierają, jaki rzeczywisty wpływ ma człowiek…” | (a) klimat zmieniał się zawsze; (b) wniosek: nauka nie ustaliła, czy obecna zmiana wynika z działalności człowieka (fakt i wniosek osobno, sekcja 4) | (a) `zgodne`; (b) `sprzeczne` (WGI SPM A.1) |
+| `10_22_2024-11-20_257` | „Pani minister wspomniała tu o konieczności walki z emisją CO2, co się zasadza na przekonaniu, że emisja CO2 powoduje globalne ocieplenie. (…) Nawet przy założeniu, że ta mitologia jest prawdziwa…” | polemika (sekcja 5), stanowisko mówcy: emisja CO2 nie powoduje globalnego ocieplenia | `sprzeczne` (WGI SPM A.1) |
 | `10_27_2025-01-23_218` | „A przyczyna tego wszystkiego to są opłaty ETS, to jest to szaleństwo ideologiczne zielonej energii, te głupoty, że krowy są odpowiedzialne za ocieplenie klimatu.” | wniosek: hodowla bydła nie przyczynia się do ocieplenia. Nie wypisujemy: „opłaty ETS” jako przyczyny cen prądu (koszty polityki, sekcja 4) ani „szaleństwa ideologicznego” (ocena) | `sprzeczne` (metan z rolnictwa, do wskazania) |
 
 ### 9.3. Przypadki do dyskusji
@@ -299,11 +303,11 @@ werdykt); nie wchodzą do gold standardu.
 | pogoda, klęski, smog | tylko z odniesieniem do zmiany klimatu, także zaprzeczającym | ekstrema i klęski zawsze; dodatkowo smog |
 | polityka klimatyczna | jak w suplemencie: koszty i tempo polityki nie są twierdzeniami; skuteczność i wykonalność działań oceniane wobec WGIII | wszystkie fakty i prognozy wobec WGIII; wyłączyć całą politykę; osobna kategoria poza licznikiem |
 | znaczenie | dosłowne fakty i wniosek mówcy | tylko dosłowne; osobne pole wniosku |
-| fakt i wniosek | **do decyzji** (sekcja 4) | dwa twierdzenia (fakt i wniosek); jedno twierdzenie (wniosek z faktem jako uzasadnieniem) |
+| fakt i wniosek | dwa twierdzenia: fakt i wniosek osobno (sekcja 4) | jedno twierdzenie (wniosek z faktem jako uzasadnieniem) |
 | kierunek | oba kierunki (umniejszanie i wyolbrzymianie), jak w suplemencie | tylko umniejszanie; oba z polem kierunku |
 | mianownik | wypowiedzi o klimacie, jak w suplemencie (sekcja 7) | twierdzenia; wypowiedzi z twierdzeniami jako wariantem |
 | poziom porównań | wypowiedź (`klimat`, `sprzeczna`) | wspólna lista twierdzeń; dopasowanie po cytacie |
-| atrybucja | **do decyzji** (sekcja 5) | pole z czterema wartościami; sama zasada w parafrazie; pole uproszczone (`wlasne` / `polemika` / `neutralny`) |
+| atrybucja | sama zasada stanowiska mówcy w parafrazie, bez osobnego pola (sekcja 5) | pole z czterema wartościami; pole uproszczone (`wlasne` / `polemika` / `neutralny`) |
 | CARDS | tylko literatura (reguła wniosku mówcy, sekcja 4) | ściąga z podkategoriami; pole `cards` |
 | warstwy | grupa × etykieta modelu, 20 / 15 / 15 na grupę (suplement B) | grupa × filtr, 100 + 25 na grupę; dwie osobne próby |
 | ślepota | bez mówcy, klubu i daty | wszystko widoczne; bez mówcy, ale z poprzednią wypowiedzią |
@@ -311,7 +315,7 @@ werdykt); nie wchodzą do gold standardu.
 | pewność AR6 | bez progu: liczy się każde ustalenie AR6 (pytanie 7) | od *likely* / *medium confidence*; od *very likely* / *high confidence* |
 | źródła AR6 | SPM → TS, bez rozdziałów i bez SYR (jak w modelu) | tylko SPM; rozdziały przez odsyłacze; dodatkowo SYR |
 | dane krajowe | twierdzenia, zwykle `brak_podstaw` | wyłączyć |
-| trudne przypadki | flaga `trudny` + komentarz | bez flagi |
+| trudne przypadki | komentarz anotatora | flaga `trudny` z komentarzem |
 | anotatorzy | jeden anotator z zespołu, bez pilotażu (suplement B) | dwie osoby i rozstrzygający, pilotaż 1 × 20; szkolenie i test kwalifikacyjny (jak u Coan i in.) |
 | ministrowie-posłowie | w populacji | wyłączyć |
 | Republikanie, Kukiz15 | reszta | wariant odporności z nimi w prawicy |
@@ -322,8 +326,8 @@ werdykt); nie wchodzą do gold standardu.
 1. ~~**Lead:** co jest mianownikiem?~~ Rozstrzygnięte: wypowiedzi o klimacie (sekcja 7).
 2. **Lead:** zostajemy przy klubie w dniu wypowiedzi (sekcja 1); czy dopisać skutki zmian klubów jako osobne ograniczenie?
 3. Kto oznacza gold? (jedna osoba, sekcja 8)
-4. Atrybucja (sekcja 5): osobne pole czy sama zasada w parafrazie?
-5. Wniosek mówcy (sekcja 4): fakt i wniosek zapisujemy jako dwa twierdzenia czy jako jedno?
+4. ~~Atrybucja (sekcja 5): osobne pole czy sama zasada w parafrazie?~~ Rozstrzygnięte: sama zasada.
+5. ~~Wniosek mówcy (sekcja 4): fakt i wniosek zapisujemy jako dwa twierdzenia czy jako jedno?~~ Rozstrzygnięte: dwa.
 6. Uwagi do decyzji z sekcji 10.
 7. Czy warto dodać próg pewności AR6? AR6 opisuje pewność ustaleń (*likely*, *very likely*, *medium* / *high
    confidence*). Teraz liczy się każde ustalenie, więc twierdzenie sprzeczne z ustaleniem o niskiej pewności też

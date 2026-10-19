@@ -11,7 +11,7 @@ Uwagi:
 2. **Prawica i reszta.** Prawica i reszta tworzą grupy. Wypowiedź posła należy do prawicy, jeśli w dniu wypowiedzi poseł należał do klubu z listy: PiS, RozwojPlus, Konfederacja, Konfederacja_KP. W przeciwnym przypadku należy do reszty.
 3. **Wypowiedź plenarna.** Pełne wystąpienie jednego mówcy podczas posiedzenia plenarnego Sejmu, czyli posiedzenia izby w pełnym składzie (posiedzenia komisji i zespołów nie są objęte). Dalej „wypowiedź" oznacza wypowiedź plenarną. Wypowiedź z wieloma twierdzeniami jest „sprzeczna", jeśli zawiera co najmniej jedno twierdzenie sprzeczne z konsensusem.
 4. **Odsetek wypowiedzi.** Dla każdej grupy (prawica i reszta posłów osobno) odsetek to liczba wypowiedzi plenarnych posłów z tej grupy uznanych za sprzeczne z konsensusem klimatycznym, podzielona przez liczbę tematycznych wypowiedzi plenarnych o klimacie posłów z tej grupy w mianowniku.
-5. **Konsensus klimatyczny.** Jako źródło wiedzy o konsensusie uznajemy raporty AR6 IPCC (WGI, WGII, WGIII – kwiecień 2022). 
+5. **Konsensus klimatyczny.** Jako źródło wiedzy o konsensusie uznajemy raporty AR6 IPCC (WGI – sierpień 2021, WGII – luty 2022, WGIII – kwiecień 2022). 
 
 ## Zakres próby:
 - **Okres:** 13.11.2023–15.09.2026 (X kadencja Sejmu), posiedzenia plenarne.
