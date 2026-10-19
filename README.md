@@ -64,7 +64,8 @@ pytest
 
 `notebooks/01_eda_wypowiedzi.ipynb` opisuje korpus i słowniki tematów. `notebooks/02`–`03` i `src/classify.py` to
 etap A, liczony dla wcześniejszej wersji hipotezy (okna czasowe A i B). `src/report_sceptycyzm.py` daje przegląd
-wypowiedzi z markerem sceptycyzmu.
+wypowiedzi z markerem sceptycyzmu. `notebooks/04_gold_standard.ipynb` krótko opisuje wyniki golda (skład próby, jakość
+etykiet modelu, odsetki z kroku 7) na podstawie plików z `data/processed/results/`.
 
 ## Struktura repo
 
