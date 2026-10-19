@@ -49,6 +49,22 @@ def test_load_refuses_bad_files(tmp_path):
     assert len(A.load(write(tmp_path, full()[:40]), d, required=range(1, 41))) == 40
 
 
+def test_load_parts_of_a_split_sample(tmp_path):
+    d = design()
+    rows = full(contradicting={1, 40})
+    blank = lambda part: [(k, "", "") for k, *_ in part]
+    first = write(tmp_path, rows[:50] + blank(rows[50:]), "annotations_AA.csv")
+    second = write(tmp_path, blank(rows[:50]) + rows[50:], "annotations_BB.csv")
+    assert A.labelled(first, d) == set(range(1, 51))
+    ann = A.load_parts([first, second], d)
+    assert len(ann) == 100 and ann["koncowa"].sum() == 1
+    assert ann.groupby("anotator").size().to_dict() == {"AA": 50, "BB": 50}
+    with pytest.raises(ValueError, match="in none of the files"):
+        A.load_parts([first, write(tmp_path, blank(rows[:50]) + rows[50:99], "annotations_CC.csv")], d)
+    with pytest.raises(ValueError, match="more than one file"):
+        A.load_parts([first, write(tmp_path, rows, "annotations_DD.csv")], d)
+
+
 def test_kappa_subsample_tops_up_contradicting(tmp_path):
     d = design()
     ann = A.load(write(tmp_path, full(contradicting=set(range(1, 13)))), d)
