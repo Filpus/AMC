@@ -12,7 +12,9 @@ Commands:
                    paperqa_v0: the labels from the PaperQA2 verdicts), drawn once and only when the labels cover the
                    whole population -> sample.csv, texts.csv
   strona           annotation page: only the texts in the shuffled order (no wypowiedz_id, speaker, club, stratum or
-                   model label) and two labels, tematyczna and (when topical) sprzeczna z AR6; autosaves in the browser
+                   model label) and two labels, tematyczna and (when topical) sprzeczna z AR6; autosaves in the browser;
+                   with --pomin FILE: only the statements not labelled in FILE -> annotation_rest.html (annotators who
+                   split the sample; estimate.py --anotacje takes all their files)
   podproba F1      second annotator: 40 statements of the sample at random, topped up to 10 that the first annotator
                    (F1) labelled contradicting -> subsample.csv (drawn once) and its page
   zgodnosc F1 F2   Cohen's kappa and share of agreement (tematyczna, final label) of the first annotator's file from
@@ -90,6 +92,13 @@ def load(path, design, required=None):
         raise SystemExit(e)
 
 
+def labelled(path, design):
+    try:
+        return A.labelled(path, design)
+    except ValueError as e:
+        raise SystemExit(e)
+
+
 def agreement(design, sub_path, first, second):
     sub = pd.read_csv(sub_path)["kolejnosc"]
     ann2 = load(second, design, required=sub)
@@ -113,7 +122,9 @@ def main():
     p.add_argument("--werdykt-prompt", default=runs.VERDICT_PROMPT,
                    help=f"verdicts of the pipeline run ({runs.PAPERQA_PROMPT} for PaperQA2)")
     p.add_argument("--seed", type=int, default=0, help="seed of the draw")
-    sub.add_parser("strona", parents=[common], help="annotation page")
+    p = sub.add_parser("strona", parents=[common], help="annotation page")
+    p.add_argument("--pomin", nargs="+", metavar="PLIK",
+                   help="annotation files: their labelled statements are left out -> annotation_rest.html")
     p = sub.add_parser("podproba", parents=[common], help="subsample and page for the second annotator")
     p.add_argument("pierwszy", help="first annotator's file")
     p.add_argument("--seed", type=int, default=0, help="seed of the subsample")
@@ -128,6 +139,12 @@ def main():
     design = pd.read_csv(design_path)
     texts = pd.read_csv(design_path.with_name("texts.csv"))
     sub_path = design_path.with_name("subsample.csv")
+    if a.polecenie == "strona" and a.pomin:
+        done = set().union(*(labelled(p, design) for p in a.pomin))
+        order = sorted(set(texts["kolejnosc"]) - done)
+        print(f"{len(done)} statements already labelled in {', '.join(a.pomin)}")
+        return write_page(texts, design, design_path.with_name("annotation_rest.html"), "annotations",
+                          "Gold standard: pozostałe wypowiedzi", order)
     if a.polecenie == "strona":
         return write_page(texts, design, design_path.with_name("annotation.html"), "annotations", "Gold standard")
     if a.polecenie == "zgodnosc":

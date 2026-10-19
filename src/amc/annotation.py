@@ -1,10 +1,13 @@
-"""Gold-standard annotation: one annotator labels the whole sample, optionally a second one a subsample (Cohen's kappa).
+"""Gold-standard annotation: one annotator labels the whole sample (or annotators split it), optionally a second one a
+subsample (Cohen's kappa).
 
 An annotation file has `kolejnosc` (the shuffled order of the sample, so the annotator never sees wypowiedz_id, which
 contains the date), `tematyczna` (0/1), `sprzeczna` (0/1 when tematyczna = 1, else empty), optionally `komentarz` and
 `proba` (the sample fingerprint: a file annotated on another draw is refused). The final label is tematyczna and
 sprzeczna.
 """
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -60,6 +63,31 @@ def load(path, design, required=None):
         ann["komentarz"] = ""
     return design[["kolejnosc", "wypowiedz_id"]].merge(
         ann[["kolejnosc", "tematyczna", "sprzeczna", "koncowa", "komentarz"]], on="kolejnosc")
+
+
+def labelled(path, design):
+    """kolejnosc of the statements labelled in an annotation file (complete or not)."""
+    return set(load(path, design, required=())["kolejnosc"])
+
+
+def load_parts(paths, design):
+    """Annotation files of annotators who split the sample: together they label every statement exactly once. Adds
+    `anotator` (the initials from annotations_<initials>.csv)."""
+    if len(paths) == 1:
+        return load(paths[0], design).assign(anotator=_initials(paths[0]))
+    parts = [load(p, design, required=()).assign(anotator=_initials(p)) for p in paths]
+    ann = pd.concat(parts, ignore_index=True)
+    twice = ann.loc[ann["kolejnosc"].duplicated(), "kolejnosc"]
+    if len(twice):
+        raise ValueError(f"statements labelled in more than one file: {_ids(set(twice))}")
+    missing = set(design["kolejnosc"]) - set(ann["kolejnosc"])
+    if missing:
+        raise ValueError(f"{len(missing)} statements labelled in none of the files: {_ids(missing)}")
+    return ann.sort_values("kolejnosc").reset_index(drop=True)
+
+
+def _initials(path):
+    return Path(path).stem.removeprefix("annotations_")
 
 
 def kappa_subsample(ann1, size=KAPPA_SIZE, min_contradicting=KAPPA_MIN_CONTRADICTING, seed=0):

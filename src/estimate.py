@@ -16,6 +16,7 @@ Examples:
   python src/extract_claims.py --ids data/gold/sample.csv    # model verdict for the whole sample
   python src/verify_claims.py --ids data/gold/sample.csv
   python src/estimate.py --anotacje data/gold/annotations_FK.csv
+  python src/estimate.py --anotacje data/gold/annotations_FP.csv data/gold/annotations_DK.csv   # split sample
 """
 import argparse
 from pathlib import Path
@@ -57,7 +58,9 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--model", default=llm.PIPELINE_MODEL)
     ap.add_argument("--proba", default=str(GOLD / "sample.csv"), help="gold sample design")
-    ap.add_argument("--anotacje", help="export of the annotation page: kolejnosc, tematyczna, sprzeczna (0/1)")
+    ap.add_argument("--anotacje", nargs="+", metavar="PLIK",
+                    help="export(s) of the annotation page: kolejnosc, tematyczna, sprzeczna (0/1); several files when "
+                         "annotators split the sample")
     ap.add_argument("--powtorzenia", type=int, default=10_000, help="bootstrap resamples")
     ap.add_argument("--twierdzenia-prompt", default="claims_v1")
     ap.add_argument("--werdykt-prompt", default=runs.VERDICT_PROMPT,
@@ -88,10 +91,10 @@ def main():
     design = pd.read_csv(design_path)
     check_design(design, labels)
     try:
-        ann = A.load(a.anotacje, design)
+        ann = A.load_parts(a.anotacje, design)
     except ValueError as e:
         raise SystemExit(e)
-    gold = design.merge(ann[["kolejnosc", "tematyczna", "sprzeczna", "komentarz"]], on="kolejnosc")
+    gold = design.merge(ann[["kolejnosc", "tematyczna", "sprzeczna", "komentarz", "anotator"]], on="kolejnosc")
     gold["werdykt_modelu"] = E.sample_verdicts(gold, sample_run(design_path, a.model, a.twierdzenia_prompt,
                                                                 a.werdykt_prompt))
     no_verdict = int(gold["werdykt_modelu"].isna().sum())
