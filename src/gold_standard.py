@@ -8,9 +8,10 @@ Files (data/gold/, or next to --proba):
   subsample.csv    second annotator's statements, with annotation_subsample.html -> annotations_subsample_<initials>.csv
 
 Commands:
-  losuj            n_h statements per group x stratum of the model labels (amc/estimation.draw; --werdykt-prompt
-                   paperqa_v0: the labels from the PaperQA2 verdicts), drawn once and only when the labels cover the
-                   whole population -> sample.csv, texts.csv
+  losuj            n_h statements per group x stratum of the model labels (amc/estimation.draw; --wyszukiwanie /
+                   --embedding: the labels of that retrieval variant; --werdykt-prompt paperqa_v0: the labels from the
+                   PaperQA2 verdicts), drawn once and only when the labels cover the whole population -> sample.csv,
+                   texts.csv
   strona           annotation page: only the texts in the shuffled order (no wypowiedz_id, speaker, club, stratum or
                    model label) and two labels, tematyczna and (when topical) sprzeczna z AR6; autosaves in the browser;
                    with --pomin FILE: only the statements not labelled in FILE -> annotation_rest.html (annotators who
@@ -121,6 +122,7 @@ def main():
     p.add_argument("--model", default=llm.PIPELINE_MODEL, help="model whose labels define the strata")
     p.add_argument("--werdykt-prompt", default=runs.VERDICT_PROMPT,
                    help=f"verdicts of the pipeline run ({runs.PAPERQA_PROMPT} for PaperQA2)")
+    runs.add_retrieval_args(p)
     p.add_argument("--seed", type=int, default=0, help="seed of the draw")
     p = sub.add_parser("strona", parents=[common], help="annotation page")
     p.add_argument("--pomin", nargs="+", metavar="PLIK",
@@ -134,7 +136,8 @@ def main():
     a = ap.parse_args()
     design_path = Path(a.proba)
     if a.polecenie == "losuj":
-        return draw(pd.read_csv(runs.labels_path(a.model, a.werdykt_prompt)), a.seed, design_path)
+        return draw(pd.read_csv(runs.labels_path(a.model, a.werdykt_prompt, a.wyszukiwanie, a.embedding)), a.seed,
+                    design_path)
 
     design = pd.read_csv(design_path)
     texts = pd.read_csv(design_path.with_name("texts.csv"))
