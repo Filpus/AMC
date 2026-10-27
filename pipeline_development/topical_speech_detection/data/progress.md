@@ -1,8 +1,11 @@
 # Progress: topical speech detection dataset
 
-- Current stage: 3 (candidate selection). Stage 2 DONE: blind labeller agreed on `klimat` for 150/150 items, so no
-  pair was rewritten or replaced; `kategoria` agreed for 110/150 (disagreements almost all P1/P2/P3 vs P4).
-  Blind labels filled into `blind_klimat`/`blind_kategoria`.
+- Current stage: 4 (labelling real statements), not started. Stage 3 DONE (main session, `select_candidates.py`):
+  population 43,991, excluded 103 (100 gold + 3 tests; 0 example-quote matches), 43,888 eligible. Drawn 850: A 650
+  (hits 0/1/2/3+ = 130/200/150/170, half prawica/reszta in every cell), B 82 (all), C 70, D 48 (length terciles).
+  Masking with `amc.text.mask_speakers` (same as the pipeline; names mentioned inside speeches are not masked).
+  Shuffled into 50 batches `batches/batch_001-050.jsonl` (only id + masked text), 350,490 words; batch_037 holds one
+  11,502-word statement alone. Labels go to `labels.jsonl`; nobody has labelled anything yet.
 - (previous status, kept for history:) stage 2 batch files written, waiting for the independent labeller
 - STOP POINT: stage 1 finished (75 pairs in synthetic.jsonl); blind-check batches written to
   `synthetic_batches/batch_001.jsonl`-`batch_008.jsonl` (150 items, shuffled with seed 2026; 20/20/20/20/20/20/20/10
