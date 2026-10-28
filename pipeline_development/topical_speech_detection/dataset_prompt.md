@@ -98,6 +98,19 @@ temat: przytacza cudzą tezę o klimacie lub polityce klimatycznej i sam coś o 
 ocenia jej skutki). `0`, gdy tylko odnotowuje, że ktoś o klimacie mówił, bez własnej treści („odpowiem na piśmie na
 pytanie pana posła o politykę klimatyczną”, „jak mówił przedmówca, także w kontekście klimatu…”).
 
+**Przypadki graniczne (reguły tego zbioru).**
+- **Zielony Ład w rolnictwie.** Zielony Ład jest polityką klimatyczną ze względu na treść klimatyczną. Krytyka lub
+  ocena jego zasad rolnych (ugorowanie, pestycydy, nawozy, ekoschematy) bez odniesienia do emisji lub klimatu to `0`
+  (N8). `1` dopiero wtedy, gdy mówca mówi coś o celach lub skutkach klimatycznych (emisje, neutralność klimatyczna,
+  zmiana klimatu).
+- **Krótka wzmianka o ETS, Zielonym Ładzie lub innym instrumencie polityki klimatycznej.** `1`, gdy mówca coś o nim
+  twierdzi: przyczynę, skutek albo ocenę z uzasadnieniem („ETS podnosi ceny prądu”, „pieniądze z ETS przejedzono
+  zamiast na transformację”). Wystarczy jedno takie zdanie. `0`, gdy instrument jest tylko nazwany, wyliczony, zapytany
+  technicznie albo użyty jako hasło („wyrzucić Zielony Ład do kosza”, „zaorać Zielony Ład”).
+- **Jedno zdanie łączące zjawisko ze zmianą klimatu.** `1`, gdy zdanie stwierdza konkretny skutek lub przyczynę jako
+  część argumentu mówcy („burze są skutkiem zmiany klimatu, dlatego…”). `0`, gdy to zwrot ramowy, który nic o klimacie
+  nie twierdzi („w obliczu postępujących zmian klimatu…”, „w dobie kryzysu klimatycznego”).
+
 **Przykłady** (fragmenty dłuższych wypowiedzi z wcześniejszych kadencji):
 1. `1`: „Zmiana klimatu powoduje, że pojawiające się opady są bardzo intensywne i zwykle rozdzielają dłuższe okresy
    bezdeszczowe. Taka charakterystyka opadów przyczynia się z kolei do intensyfikacji zjawiska suszy.” Wypowiedź
@@ -142,9 +155,11 @@ When an item fits several categories:
 - **Negatives:** the exclusion rule that applies. There are no per-category quotas for real statements: label what
 you read and report the counts.
 
-Flag on every item: `odniesienie_do_innego_mowcy` = 1 when the climate content is a reference to or polemic with any
-other actor: another speaker, a party, the government, the EU, the media, NGOs, foundations, industry, experts or
-activists (labelled by the rule in section 2).
+Flag on every item: `odniesienie_do_innego_mowcy` = 1 only when the climate content explicitly names another actor as
+the holder or source of a climate position (another speaker, a party, the government, the EU, the media, NGOs,
+foundations, industry, experts or activists) and the speaker refers to or argues with that position. Criticising a
+policy without naming whose position it is gets 0. The flag does not change `klimat` (labelled by the rule in
+section 2).
 
 ## 4. Exclusions
 

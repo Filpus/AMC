@@ -1,11 +1,12 @@
 # Progress: topical speech detection dataset
 
-- Current stage: 4 (labelling real statements), not started. Stage 3 DONE (main session, `select_candidates.py`):
-  population 43,991, excluded 103 (100 gold + 3 tests; 0 example-quote matches), 43,888 eligible. Drawn 850: A 650
-  (hits 0/1/2/3+ = 130/200/150/170, half prawica/reszta in every cell), B 82 (all), C 70, D 48 (length terciles).
-  Masking with `amc.text.mask_speakers` (same as the pipeline; names mentioned inside speeches are not masked).
-  Shuffled into 50 batches `batches/batch_001-050.jsonl` (only id + masked text), 350,490 words; batch_037 holds one
-  11,502-word statement alone. Labels go to `labels.jsonl`; nobody has labelled anything yet.
+- Current stage: 5 PAUSED (2026-10-28, user decision: go to fine-tuning first, relabel later). Stage 4 DONE: 850 real
+  statements labelled by 5 parallel Opus labellers (`labels_part1-5.jsonl`, merged into `labels.jsonl`; all checks
+  pass): 453 positives, 397 negatives; 334 `pewnosc = niska` (306 in pool A, 28 in B). Labellers were inconsistent on
+  borderline types (Green Deal in farming, short ETS mentions, one-clause climate links, reference flag 30-63% by
+  part) and more liberal than the human gold among Gemma positives with 0 hits (47% vs 24%). Borderline rules were
+  added to section 2 and the flag rule to section 3; `labeller/instructions.md` regenerated. Planned stage 5: relabel
+  the 334 uncertain statements with Sonnet under the new rules, plus ~50 hidden high-confidence check statements.
 - (previous status, kept for history:) stage 2 batch files written, waiting for the independent labeller
 - STOP POINT: stage 1 finished (75 pairs in synthetic.jsonl); blind-check batches written to
   `synthetic_batches/batch_001.jsonl`-`batch_008.jsonl` (150 items, shuffled with seed 2026; 20/20/20/20/20/20/20/10
