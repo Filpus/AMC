@@ -87,8 +87,8 @@ etap A, liczony dla wcześniejszej wersji hipotezy (okna czasowe A i B). `src/re
 wypowiedzi z markerem sceptycyzmu. `notebooks/04_gold_standard.ipynb` krótko opisuje wyniki golda (skład próby, jakość
 etykiet modelu, odsetki z kroku 7) na podstawie plików z `data/processed/results/`. `notebooks/05_porownanie_weryfikacji.ipynb`
 porównuje przebiegi Gemmy 4 12B na tych samych twierdzeniach, w których zmienia się tylko wyszukiwanie fragmentów AR6
-albo weryfikator (RRF z bge-m3, EmbeddingGemma, PaperQA2): werdykty i etykiety na populacji oraz jakość na goldzie.
-Warianty wyszukiwania z bge-m3, BM25 i Qwen3-Embedding są tylko lokalnie i bez nich notatnik je pomija.
+albo weryfikator (RRF z bge-m3, EmbeddingGemma EN i PL, BM25, PaperQA2): werdykty i etykiety na populacji oraz jakość
+na goldzie. Warianty wyszukiwania z bge-m3 i Qwen3-Embedding są tylko lokalnie i bez nich notatnik je pomija.
 
 ## Struktura repo
 
