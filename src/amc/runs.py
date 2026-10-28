@@ -23,10 +23,13 @@ def out_path(step, prompt, model, suffix=""):
     return PROCESSED / step / f"{prompt}__{model_slug(model)}{suffix}.jsonl"
 
 
-def add_retrieval_args(ap):
-    ap.add_argument("--wyszukiwanie", choices=ar6.SEARCH, default=ar6.DEFAULT_SEARCH,
+def add_retrieval_args(ap, frozen=False):
+    """--wyszukiwanie and --embedding; `frozen` defaults them to the frozen run (rrf with bge-m3), for the analysis
+    scripts tied to the gold sample drawn from its labels."""
+    search, embedding = ("rrf", ar6.FROZEN_EMBED_MODEL) if frozen else (ar6.DEFAULT_SEARCH, ar6.EMBED_MODEL)
+    ap.add_argument("--wyszukiwanie", choices=ar6.SEARCH, default=search,
                     help="AR6 retrieval: embedding of the English or Polish claim, BM25, or rrf (the frozen run)")
-    ap.add_argument("--embedding", default=ar6.EMBED_MODEL, help="embedding model (Ollama) for en, pl and rrf")
+    ap.add_argument("--embedding", default=embedding, help="embedding model (Ollama) for en, pl and rrf")
 
 
 def retrieval_tag(verdict_prompt, search=ar6.DEFAULT_SEARCH, embedding=ar6.EMBED_MODEL):

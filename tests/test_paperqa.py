@@ -1,3 +1,4 @@
+import argparse
 from string import Formatter
 
 from amc import llm, runs
@@ -43,6 +44,14 @@ def test_labels_path():
     assert runs.labels_path("gemma4:12b").name == "gemma4_12b__en_embeddinggemma_300m.csv"
     assert runs.labels_path("gemma4:12b", search="bm25", embedding="qwen3-embedding:8b").name == "gemma4_12b__bm25.csv"
     assert runs.labels_path("gemma4:12b", embedding="qwen3-embedding:8b").name == "gemma4_12b__en_qwen3-embedding_8b.csv"
+
+
+def test_analysis_scripts_default_to_the_frozen_run():
+    for frozen, name in [(True, "gemma4_12b.csv"), (False, "gemma4_12b__en_embeddinggemma_300m.csv")]:
+        ap = argparse.ArgumentParser()
+        runs.add_retrieval_args(ap, frozen=frozen)
+        a = ap.parse_args([])
+        assert runs.labels_path("gemma4:12b", runs.VERDICT_PROMPT, a.wyszukiwanie, a.embedding).name == name
 
 
 def test_verdicts_path_keeps_the_frozen_run_name():

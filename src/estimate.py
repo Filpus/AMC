@@ -1,8 +1,8 @@
 """Hypothesis test from the pipeline labels and the gold standard (measurement plan, variant B; amc/estimation).
 
-Input: data/processed/labels/<model><variant>.csv (label_statements.py with the same --wyszukiwanie / --embedding; the
-gold sample in the repo was drawn from the frozen run: --wyszukiwanie rrf; with --werdykt-prompt paperqa_v0 the labels
-from the PaperQA2 verdicts). Without annotations: stratum sizes N_h, the rarity condition, uncorrected shares and the step 6
+Input: data/processed/labels/<model><variant>.csv (label_statements.py with the same --wyszukiwanie / --embedding; by
+default the frozen run, rrf with bge-m3, from whose labels the gold sample in the repo was drawn; with --werdykt-prompt
+paperqa_v0 the labels from the PaperQA2 verdicts). Without annotations: stratum sizes N_h, the rarity condition, uncorrected shares and the step 6
 regression. With --anotacje (the export of the annotation page of `gold_standard.py strona`, checked by
 amc/annotation.load): sample composition (true contradicting statements per stratum), steps 5 and 7 (stratified
 bootstrap) and the verdict on the hypothesis. The model verdict for the statements of stratum 3 (not topical by the
@@ -18,7 +18,6 @@ Examples:
   python src/verify_claims.py --ids data/gold/sample.csv
   python src/estimate.py --anotacje data/gold/annotations_FK.csv
   python src/estimate.py --anotacje data/gold/annotations_FP.csv data/gold/annotations_DK.csv   # split sample
-  python src/estimate.py --wyszukiwanie rrf --anotacje data/gold/annotations_FP.csv data/gold/annotations_DK.csv
 """
 import argparse
 from pathlib import Path
@@ -67,7 +66,7 @@ def main():
     ap.add_argument("--twierdzenia-prompt", default="claims_v1")
     ap.add_argument("--werdykt-prompt", default=runs.VERDICT_PROMPT,
                     help=f"verdicts of the pipeline run ({runs.PAPERQA_PROMPT} for PaperQA2)")
-    runs.add_retrieval_args(ap)
+    runs.add_retrieval_args(ap, frozen=True)
     a = ap.parse_args()
     labels_file = runs.labels_path(a.model, a.werdykt_prompt, a.wyszukiwanie, a.embedding)
     slug = labels_file.stem

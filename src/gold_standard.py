@@ -9,8 +9,8 @@ Files (data/gold/, or next to --proba):
 
 Commands:
   losuj            n_h statements per group x stratum of the model labels (amc/estimation.draw; --wyszukiwanie /
-                   --embedding: the labels of that retrieval variant; --werdykt-prompt paperqa_v0: the labels from the
-                   PaperQA2 verdicts), drawn once and only when the labels cover the whole population -> sample.csv,
+                   --embedding: the labels of that retrieval variant, by default the frozen run; --werdykt-prompt
+                   paperqa_v0: the labels from the PaperQA2 verdicts), drawn once and only when the labels cover the whole population -> sample.csv,
                    texts.csv
   strona           annotation page: only the texts in the shuffled order (no wypowiedz_id, speaker, club, stratum or
                    model label) and two labels, tematyczna and (when topical) sprzeczna z AR6; autosaves in the browser;
@@ -122,7 +122,7 @@ def main():
     p.add_argument("--model", default=llm.PIPELINE_MODEL, help="model whose labels define the strata")
     p.add_argument("--werdykt-prompt", default=runs.VERDICT_PROMPT,
                    help=f"verdicts of the pipeline run ({runs.PAPERQA_PROMPT} for PaperQA2)")
-    runs.add_retrieval_args(p)
+    runs.add_retrieval_args(p, frozen=True)
     p.add_argument("--seed", type=int, default=0, help="seed of the draw")
     p = sub.add_parser("strona", parents=[common], help="annotation page")
     p.add_argument("--pomin", nargs="+", metavar="PLIK",

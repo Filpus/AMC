@@ -69,16 +69,16 @@ python src/report.py                              # krok 9: results/<model>_rapo
 pytest
 ```
 
-Wyszukiwanie w AR6 wybiera `--wyszukiwanie` (w `pipeline.py`, `verify_claims.py`, `label_statements.py`, `estimate.py`
-i `gold_standard.py losuj`): `en` (domyślnie) to embedding angielskiej parafrazy twierdzenia, `pl` to embedding polskiej,
+Wyszukiwanie w AR6 wybiera `--wyszukiwanie` (w `pipeline.py`, `verify_claims.py`, `label_statements.py`, `estimate.py`,
+`gold_standard.py losuj`, `robustness.py` i `report.py`): `en` (domyślnie) to embedding angielskiej parafrazy twierdzenia, `pl` to embedding polskiej,
 `bm25` to wyszukiwanie po słowach w angielskiej, a `rrf` łączy wszystkie trzy rankingi. Model embeddingów wybiera
 `--embedding` (domyślnie EmbeddingGemma `embeddinggemma:300m`; indeks innego modelu buduje `build_ar6.py --model …`).
 Każdy wariant zapisuje werdykty i etykiety pod własną nazwą, np.
 `verdicts/verdict_v1__gemma4_12b__en_embeddinggemma_300m.jsonl` i `labels/gemma4_12b__en_embeddinggemma_300m.csv`;
 nazwy bez modelu embeddingów (`__en`, `__pl`, `__bm25`) oznaczają bge-m3. Przebieg w repo liczono z `rrf` i bge-m3
-(pliki bez sufiksu) i z jego etykiet wylosowano próbę golda, więc jego wyniki odtwarza
-`--wyszukiwanie rrf --embedding bge-m3`, np. `python src/estimate.py --wyszukiwanie rrf --embedding bge-m3 --anotacje
-data/gold/annotations_FP.csv data/gold/annotations_DK.csv`.
+(pliki bez sufiksu) i z jego etykiet wylosowano próbę golda, dlatego `estimate.py`, `gold_standard.py losuj`,
+`robustness.py` i `report.py` domyślnie biorą ten przebieg (`--wyszukiwanie rrf --embedding bge-m3`); inny wariant
+trzeba im podać wprost.
 
 ## Eksploracja
 
