@@ -39,7 +39,7 @@ Pobrane komisje: **ZDR** (Zdrowia), **OSZ** (Ochrony Środowiska), **ESK** (Ener
 | tabele z API | `data/interim/` | tylko historia klubów (CSV) | `fetch_sejm.py`, `fetch_komisje.py` (krok `build`) |
 | **korpus do analizy** | `data/processed/korpus_*.parquet` | nie (duże; odtwarzalne) | `build_corpus.py` |
 | wyniki EDA | `data/processed/eda_*.csv`, `figures/` | tak | notatnik, `report_sceptycyzm.py` |
-| wyniki pipeline'u | `data/processed/{topic,claims,verdicts,labels,results}/` | tak (pełny przebieg Gemmy 4 12B z wyszukiwaniem RRF i jego testy; pliki innych wariantów wyszukiwania mają sufiks `__en`, `__pl`, `__bm25`, …) | `pipeline.py`, `estimate.py` |
+| wyniki pipeline'u | `data/processed/{topic,claims,verdicts,labels,results}/` | tak (pełny przebieg Gemmy 4 12B z wyszukiwaniem RRF i jego testy; werdykty i etykiety tych samych twierdzeń z wyszukiwaniem `en` + EmbeddingGemma i z PaperQA2; pliki innych wariantów wyszukiwania mają sufiks `__en`, `__pl`, `__bm25`, …) | `pipeline.py`, `estimate.py` |
 | ręczna anotacja | `data/gold/` | tak (ze stroną `annotation.html` wylosowanej próby; inne strony HTML nie; anotacje `annotations_FP.csv` dla wypowiedzi 1–50 i `annotations_DK.csv` dla 51–100) | `gold_standard.py` (`losuj`: losowanie warstwowe według etykiet modelu; `strona`: strona do anotacji, z `--pomin` tylko nieoznaczone; `podproba`, `zgodnosc`: drugi anotator i kappa) |
 
 Zasada: **nie edytujemy ręcznie plików w `raw/`, `interim/` ani korpusu** — zmieniamy kod w `src/amc/` i przebudowujemy.
