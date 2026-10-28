@@ -1,7 +1,8 @@
 """Hypothesis test from the pipeline labels and the gold standard (measurement plan, variant B; amc/estimation).
 
-Input: data/processed/labels/<model>.csv (label_statements.py; with --werdykt-prompt paperqa_v0 the labels from the
-PaperQA2 verdicts). Without annotations: stratum sizes N_h, the rarity condition, uncorrected shares and the step 6
+Input: data/processed/labels/<model><variant>.csv (label_statements.py with the same --wyszukiwanie / --embedding; by
+default the frozen run, rrf with bge-m3, from whose labels the gold sample in the repo was drawn; with --werdykt-prompt
+paperqa_v0 the labels from the PaperQA2 verdicts). Without annotations: stratum sizes N_h, the rarity condition, uncorrected shares and the step 6
 regression. With --anotacje (the export of the annotation page of `gold_standard.py strona`, checked by
 amc/annotation.load): sample composition (true contradicting statements per stratum), steps 5 and 7 (stratified
 bootstrap) and the verdict on the hypothesis. The model verdict for the statements of stratum 3 (not topical by the
@@ -40,12 +41,12 @@ def check_design(design, labels):
         raise SystemExit(f"the gold sample was drawn from other labels (N_h differ):\n{pd.concat([drawn, sizes], axis=1)}")
 
 
-def sample_run(design_path, model, claims_prompt, verdict_prompt):
+def sample_run(design_path, model, claims_prompt, verdicts_file):
     """wypowiedz_id -> 0/1 (>= 1 contradicting claim) from `extract_claims.py --ids` and `verify_claims.py --ids` on the
     sample file; missing when the run is absent or unfinished."""
     suffix = f"__{design_path.stem}"
     claims = list(runs.last_lines(runs.out_path("claims", claims_prompt, model, suffix)).values())
-    verdicts = list(runs.last_lines(runs.out_path("verdicts", verdict_prompt, model, suffix), "twierdzenie_id").values())
+    verdicts = list(runs.last_lines(verdicts_file, "twierdzenie_id").values())
     ids = [r["wypowiedz_id"] for r in claims]
     if not ids:
         return {}
@@ -65,8 +66,9 @@ def main():
     ap.add_argument("--twierdzenia-prompt", default="claims_v1")
     ap.add_argument("--werdykt-prompt", default=runs.VERDICT_PROMPT,
                     help=f"verdicts of the pipeline run ({runs.PAPERQA_PROMPT} for PaperQA2)")
+    runs.add_retrieval_args(ap, frozen=True)
     a = ap.parse_args()
-    labels_file = runs.labels_path(a.model, a.werdykt_prompt)
+    labels_file = runs.labels_path(a.model, a.werdykt_prompt, a.wyszukiwanie, a.embedding)
     slug = labels_file.stem
     labels = pd.read_csv(labels_file)
     design_path = Path(a.proba)
@@ -95,8 +97,9 @@ def main():
     except ValueError as e:
         raise SystemExit(e)
     gold = design.merge(ann[["kolejnosc", "tematyczna", "sprzeczna", "komentarz", "anotator"]], on="kolejnosc")
+    verdicts_file = runs.verdicts_path(a.werdykt_prompt, a.model, a.wyszukiwanie, a.embedding, f"__{design_path.stem}")
     gold["werdykt_modelu"] = E.sample_verdicts(gold, sample_run(design_path, a.model, a.twierdzenia_prompt,
-                                                                a.werdykt_prompt))
+                                                                verdicts_file))
     no_verdict = int(gold["werdykt_modelu"].isna().sum())
     if no_verdict:
         print(f"\nNo model verdict for {no_verdict} statements of stratum 3: run extract_claims.py and verify_claims.py "

@@ -8,7 +8,7 @@ result.
 
 Examples:
   python src/robustness.py
-  python src/robustness.py --werdykt-prompt paperqa_v0   # labels from the PaperQA2 verdicts
+  python src/robustness.py --werdykt-prompt paperqa_v0 --embedding embeddinggemma:300m   # labels from PaperQA2
 """
 import argparse
 import json
@@ -73,8 +73,9 @@ def main():
     ap.add_argument("--werdykt-prompt", default=runs.VERDICT_PROMPT,
                     help=f"verdicts of the pipeline run ({runs.PAPERQA_PROMPT} for PaperQA2)")
     ap.add_argument("--bez-loso", action="store_true", help="skip leave-one-speaker-out")
+    runs.add_retrieval_args(ap, frozen=True)
     a = ap.parse_args()
-    labels_file = runs.labels_path(a.model, a.werdykt_prompt)
+    labels_file = runs.labels_path(a.model, a.werdykt_prompt, a.wyszukiwanie, a.embedding)
     slug = labels_file.stem
     labels = pd.read_csv(labels_file)
     OUT.mkdir(parents=True, exist_ok=True)

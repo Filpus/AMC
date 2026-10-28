@@ -5,7 +5,7 @@ import socket
 
 import pandas as pd
 
-from . import corpus, population
+from . import ar6, corpus, population
 from . import text as T
 from .paths import PROCESSED
 
@@ -23,10 +23,37 @@ def out_path(step, prompt, model, suffix=""):
     return PROCESSED / step / f"{prompt}__{model_slug(model)}{suffix}.jsonl"
 
 
-def labels_path(model, verdict_prompt=VERDICT_PROMPT):
-    """data/processed/labels/<model>.csv; verdicts from another prompt (PaperQA2: paperqa_v0) get __<prompt>."""
+def add_retrieval_args(ap, frozen=False):
+    """--wyszukiwanie and --embedding; `frozen` defaults them to the frozen run (rrf with bge-m3), for the analysis
+    scripts tied to the gold sample drawn from its labels."""
+    search, embedding = ("rrf", ar6.FROZEN_EMBED_MODEL) if frozen else (ar6.DEFAULT_SEARCH, ar6.EMBED_MODEL)
+    ap.add_argument("--wyszukiwanie", choices=ar6.SEARCH, default=search,
+                    help="AR6 retrieval: embedding of the English or Polish claim, BM25, or rrf (the frozen run)")
+    ap.add_argument("--embedding", default=embedding, help="embedding model (Ollama) for en, pl and rrf")
+
+
+def retrieval_tag(verdict_prompt, search=ar6.DEFAULT_SEARCH, embedding=ar6.EMBED_MODEL):
+    """File name part of the retrieval variant: none for rrf with bge-m3 (the frozen run), else __<search>, followed by
+    _<embedding model> for any model but bge-m3. PaperQA2 has its own retrieval: only __<embedding model>, none for
+    bge-m3."""
+    if verdict_prompt == PAPERQA_PROMPT:
+        return "" if embedding == ar6.FROZEN_EMBED_MODEL else f"__{model_slug(embedding)}"
+    if (search, embedding) == ("rrf", ar6.FROZEN_EMBED_MODEL):
+        return ""
+    return f"__{search}" + ("" if search == "bm25" or embedding == ar6.FROZEN_EMBED_MODEL
+                            else f"_{model_slug(embedding)}")
+
+
+def verdicts_path(verdict_prompt, model, search=ar6.DEFAULT_SEARCH, embedding=ar6.EMBED_MODEL, suffix=""):
+    """data/processed/verdicts/<prompt>__<model><retrieval tag><suffix>.jsonl"""
+    return out_path("verdicts", verdict_prompt, model, retrieval_tag(verdict_prompt, search, embedding) + suffix)
+
+
+def labels_path(model, verdict_prompt=VERDICT_PROMPT, search=ar6.DEFAULT_SEARCH, embedding=ar6.EMBED_MODEL):
+    """data/processed/labels/<model>[__<prompt>]<retrieval tag>.csv; another verdict prompt (PaperQA2: paperqa_v0)
+    gets __<prompt>."""
     suffix = "" if verdict_prompt == VERDICT_PROMPT else f"__{verdict_prompt}"
-    return PROCESSED / "labels" / f"{model_slug(model)}{suffix}.csv"
+    return PROCESSED / "labels" / f"{model_slug(model)}{suffix}{retrieval_tag(verdict_prompt, search, embedding)}.csv"
 
 
 def last_lines(path, key="wypowiedz_id"):

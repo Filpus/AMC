@@ -2,8 +2,11 @@
 
 IPCC findings are numbered (A.1.8, TS.C.4.2) and end with a reference list in braces ({2.3, TS.2.6}); a fragment is one
 finding where the layout allows it, otherwise up to ~250 words under the last numbered heading. Figure labels and table
-cells (short lines) are dropped. Retrieval: bge-m3 embeddings served by Ollama plus BM25 on the English text, merged by
-reciprocal rank fusion. The PDFs and the index stay outside the repository (IPCC copyright: data/ar6/ in .gitignore).
+cells (short lines) are dropped. Retrieval (SEARCH): embeddings served by Ollama (EmbeddingGemma by default, bge-m3
+in the frozen run) of the English
+claim (`en`) or the Polish one (`pl`), BM25 on the English one (`bm25`), or all three merged by reciprocal rank fusion
+(`rrf`, the frozen pipeline run). The PDFs and the index stay outside the repository (IPCC copyright: data/ar6/ in
+.gitignore).
 """
 import math
 import re
@@ -18,7 +21,14 @@ from .paths import ROOT
 DIR = ROOT / "data" / "ar6"
 PDF_DIR = DIR / "pdf"
 FRAGMENTS = DIR / "fragments.parquet"
-EMBED_MODEL = "bge-m3"
+EMBED_MODEL = "embeddinggemma:300m"
+FROZEN_EMBED_MODEL = "bge-m3"  # the frozen run; result files of its retrieval carry no model name
+SEARCH = ("en", "pl", "bm25", "rrf")
+DEFAULT_SEARCH = "en"
+QUERY_INSTRUCTIONS = {"qwen3-embedding": "Instruct: Given a claim made by a politician, retrieve IPCC AR6 passages that "
+                                         "support or refute the claim\nQuery: ",
+                      "embeddinggemma": "task: fact checking | query: "}
+DOCUMENT_PREFIXES = {"embeddinggemma": "title: none | text: "}  # model cards; models not listed take raw text
 OLLAMA_EMBED = "http://127.0.0.1:11434/api/embed"
 _BASE = "https://www.ipcc.ch/report/ar6/"
 SOURCES = [
@@ -96,8 +106,12 @@ def build():
     return df
 
 
-def embed(texts, model=EMBED_MODEL, batch=32):
-    """L2-normalised embeddings from Ollama."""
+def embed(texts, model=EMBED_MODEL, batch=32, query=False):
+    """L2-normalised embeddings from Ollama; queries and documents get the model's prefixes (QUERY_INSTRUCTIONS,
+    DOCUMENT_PREFIXES)."""
+    prefixes = QUERY_INSTRUCTIONS if query else DOCUMENT_PREFIXES
+    prefix = next((p for name, p in prefixes.items() if model.startswith(name)), "")
+    texts = [prefix + t for t in texts]
     vecs = []
     for i in range(0, len(texts), batch):
         r = requests.post(OLLAMA_EMBED, json={"model": model, "input": list(texts[i:i + batch])}, timeout=600)
@@ -143,21 +157,35 @@ def rrf(rankings, k=60):
     return [i for i, _ in score.most_common()]
 
 
-class Index:
-    """Fragments with their embeddings. `search` ranks by dense similarity of both texts and BM25 on the English one,
-    and takes the best `per_part` fragments from the SPMs and from the TSs (codebook: SPM first, then TS)."""
+def query_texts(method, query_pl, query_en):
+    """Texts to embed for one claim: none for bm25, both for rrf."""
+    return {"en": [query_en], "pl": [query_pl], "bm25": [], "rrf": [q for q in (query_pl, query_en) if q]}[method]
 
-    def __init__(self, fragments=None, vectors=None, model=EMBED_MODEL):
+
+class Index:
+    """Fragments with their embeddings (loaded only for the dense methods). `search` ranks the fragments with one of
+    SEARCH and takes the best `per_part` from the SPMs and from the TSs (codebook: SPM first, then TS)."""
+
+    def __init__(self, fragments=None, vectors=None, model=EMBED_MODEL, method=DEFAULT_SEARCH):
         self.df = pd.read_parquet(FRAGMENTS) if fragments is None else fragments.reset_index(drop=True)
-        self.vec = np.load(embeddings_path(model)) if vectors is None else vectors
-        self.model = model
+        dense = method != "bm25"
+        self.vec = np.load(embeddings_path(model)) if vectors is None and dense else vectors
+        self.model, self.method = model, method
         self.bm25 = BM25(self.df["tekst"].tolist())
 
     def search(self, query_pl, query_en="", per_part=3, pool=50, query_vectors=None):
-        queries = [q for q in (query_pl, query_en) if q]
-        qv = embed(queries, self.model) if query_vectors is None else query_vectors
-        rankings = [list(np.argsort(-(self.vec @ v))[:pool]) for v in qv]
-        if query_en:
-            rankings.append(list(np.argsort(-self.bm25.scores(query_en))[:pool]))
-        ranked = self.df.iloc[rrf(rankings)]
+        """`query_vectors`: embeddings of query_texts(method, ...) when computed in a batch beforehand."""
+        if self.method == "bm25":
+            order = np.argsort(-self.bm25.scores(query_en))
+        else:
+            texts = query_texts(self.method, query_pl, query_en)
+            qv = embed(texts, self.model, query=True) if query_vectors is None else query_vectors
+            if self.method == "rrf":
+                rankings = [list(np.argsort(-(self.vec @ v))[:pool]) for v in qv]
+                if query_en:
+                    rankings.append(list(np.argsort(-self.bm25.scores(query_en))[:pool]))
+                order = rrf(rankings)
+            else:
+                order = np.argsort(-(self.vec @ qv[0]))
+        ranked = self.df.iloc[order]
         return pd.concat([ranked[ranked["czesc"] == part].head(per_part) for part in ("SPM", "TS")])
