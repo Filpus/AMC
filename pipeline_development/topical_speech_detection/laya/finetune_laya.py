@@ -11,14 +11,18 @@ are training data in every fold and never get a prediction. Each fold model pred
 (cross-fitted labels), then a final model is trained on everything. Hyperparameters are fixed in advance: nothing is
 tuned on the gold sample.
 
+Positives whose deciding fragment lies beyond the token budget are trained on a crop around the fragment.
+
 Output in laya/runs/<name>/:
 - fold_<k>/ and final/: Laya checkpoints (model.safetensors, encoder/, tokenizer/, rl_agent_config.json,
   questions.json, train_report.json), loadable with `laya.load(path)`;
 - oof_predictions.csv: cross-fitted P(klimat = 1) for every real statement;
 - run.json: settings, fold sizes and metrics.
 """
-import argparse, json, sys
+import argparse, json, os, sys
 from pathlib import Path
+
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 import numpy as np
 import pandas as pd
@@ -37,14 +41,33 @@ QUESTION = {
 LABEL = {1: "A", 0: "B"}
 
 
-def rows(df: pd.DataFrame) -> list:
-    return [{"state": t, "questions": {QID: QUESTION}, "expected": {QID: LABEL[int(k)]}}
-            for t, k in zip(df.tekst, df.klimat)]
+def anchored(text: str, fragment, tok, budget: int) -> str:
+    """Laya keeps the first `budget` tokens of a state. If the deciding fragment of a positive lies beyond that, train
+    on a crop that starts half a budget before the fragment, so the label is not attached to text without its
+    evidence. Negatives and positives whose fragment fits are unchanged."""
+    i = text.find(str(fragment)) if isinstance(fragment, str) else -1
+    if i < 0:
+        return text
+    end = len(tok(text[:i] + fragment, add_special_tokens=False)["input_ids"])
+    if end <= budget:
+        return text
+    ids = tok(text[:i], add_special_tokens=False, return_offsets_mapping=True)["offset_mapping"]
+    start = ids[max(0, len(ids) - budget // 2)][0]
+    return text[start:]
 
 
-def write_jsonl(path: Path, df: pd.DataFrame) -> str:
+def rows(df: pd.DataFrame, tok=None, budget: int = 0) -> list:
+    out = []
+    for t, k, f in zip(df.tekst, df.klimat, df.fragment):
+        state = anchored(t, f, tok, budget) if tok is not None and k == 1 else t
+        out.append({"state": state, "questions": {QID: QUESTION}, "expected": {QID: LABEL[int(k)]}})
+    return out
+
+
+def write_jsonl(path: Path, df: pd.DataFrame, tok=None, budget: int = 0) -> str:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows(df)), encoding="utf-8")
+    path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows(df, tok, budget)),
+                    encoding="utf-8")
     return str(path)
 
 
@@ -72,13 +95,23 @@ def main() -> None:
     ap.add_argument("--base", default="multilingual", help="Laya alias, Hub id or local checkpoint")
     ap.add_argument("--folds", type=int, default=5, help="0 = only the final model (no cross-fitting)")
     ap.add_argument("--epochs", type=int, default=4)
-    ap.add_argument("--max-len", type=int, default=4096, help="token budget of the statement text")
+    ap.add_argument("--max-len", type=int, default=2048,
+                    help="token budget per sequence (question + statement); longer positives are cropped around the fragment")
     ap.add_argument("--micro-batch", type=int, default=2)
     ap.add_argument("--grad-accum", type=int, default=32)
     ap.add_argument("--seed", type=int, default=2026)
     a = ap.parse_args()
 
+    import laya.train as lt
     from laya.train import TrainConfig, finetune
+    from transformers import AutoTokenizer
+
+    # Laya scores evaluation and calibration items in fp32 batches of 16; its decision head attends over the whole
+    # sequence, so at long max_len that step alone runs out of GPU memory. Use the training micro-batch instead.
+    _calibration_records = lt.calibration_records
+    lt.calibration_records = lambda *args, **kw: _calibration_records(*args, **{**kw, "batch_size": a.micro_batch})
+    tok = AutoTokenizer.from_pretrained(os.path.join(lt.resolve_checkpoint_dir(a.base), "tokenizer"))
+    budget = a.max_len - 300  # room for the statement after the question head (head_max_len 256 + markers)
 
     out = HERE / "runs" / a.name
     if out.exists():
@@ -91,7 +124,9 @@ def main() -> None:
         return TrainConfig(epochs=a.epochs, micro_batch=a.micro_batch, grad_accum=a.grad_accum, max_len=a.max_len,
                            seed=a.seed, eval_data=eval_path)
 
-    run = {"args": vars(a), "n_real": len(real), "n_synthetic": len(syn), "question": QUESTION, "folds": []}
+    run = {"args": vars(a), "n_real": len(real), "n_synthetic": len(syn), "question": QUESTION, "folds": [],
+           "positives_cropped_around_fragment": sum(anchored(t, f, tok, budget) != t for t, f, k in
+                                                    zip(df.tekst, df.fragment, df.klimat) if k == 1)}
     if a.folds and len(real):
         from sklearn.model_selection import StratifiedGroupKFold
 
@@ -102,7 +137,7 @@ def main() -> None:
         for k, (tr, te) in enumerate(cv.split(real, real.klimat, groups), 1):
             train, held = pd.concat([real.iloc[tr], syn]), real.iloc[te]
             d = out / f"fold_{k}"
-            res = finetune(write_jsonl(d / "train.jsonl", train), a.base, str(d),
+            res = finetune(write_jsonl(d / "train.jsonl", train, tok, budget), a.base, str(d),
                            config(write_jsonl(d / "held_out.jsonl", held)))
             oof.iloc[te] = predict(d, held.tekst.tolist(), a.max_len, a.micro_batch * 4)
             fold_of.iloc[te] = k
@@ -120,7 +155,7 @@ def main() -> None:
         print("no real statements: cross-fitting skipped, only the final model is trained", flush=True)
 
     d = out / "final"
-    res = finetune(write_jsonl(d / "train.jsonl", df), a.base, str(d), config())
+    res = finetune(write_jsonl(d / "train.jsonl", df, tok, budget), a.base, str(d), config())
     run["final"] = {"train": len(df), "report": res["train_report"]}
     (out / "run.json").write_text(json.dumps(run, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     print(f"done: {out}", flush=True)
