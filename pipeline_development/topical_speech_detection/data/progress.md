@@ -1,6 +1,14 @@
 # Progress: topical speech detection dataset
 
-- Current stage: 5 PAUSED (2026-10-28, user decision: go to fine-tuning first, relabel later). Stage 4 DONE: 850 real
+- Current stage: 6 DONE (2026-10-28). Stage 5: relabel of 334 `niska` (3 fresh Opus labellers) agreed with stage 4 on
+  `klimat` for 233/334 (65 1->0, 36 0->1); hidden checks 98/100. User chose option 1: the relabel is used for the 334,
+  the confident labels stay. `assemble_dataset.py` wrote dataset.csv (1000: 850 real 424/426, 150 synthetic 75/75;
+  columns relabel, klimat_etap4, kategoria_etap4, zgodnosc_relabel keep the variants), review_sample.csv (50),
+  review_low_confidence.csv (168), summary.md. Next: fine-tuning (laya/, herbert/).
+- Current stage: 5 RUNNING (2026-10-28): `make_relabel_batches.py` drew the 334 `niska` statements + 100 hidden
+  `wysoka` checks (seed 2026; `relabel_plan.csv`, never shown to labellers) into `relabel_batches/part1-3/` (26
+  batches, 182,153 words); 3 fresh Opus labellers write `relabel_part1-3.jsonl` under the borderline rules.
+- Earlier: stage 5 was PAUSED (user decision: fine-tuning scripts first). Stage 4 DONE: 850 real
   statements labelled by 5 parallel Opus labellers (`labels_part1-5.jsonl`, merged into `labels.jsonl`; all checks
   pass): 453 positives, 397 negatives; 334 `pewnosc = niska` (306 in pool A, 28 in B). Labellers were inconsistent on
   borderline types (Green Deal in farming, short ETS mentions, one-clause climate links, reference flag 30-63% by
