@@ -1,16 +1,21 @@
 """Verdict of every claim against AR6 (prompt prompts/<prompt>.md, index from build_ar6.py).
 
-For each claim the AR6 index returns the best fragments from the SPMs and from the TSs (bge-m3 on the Polish and English paraphrase + BM25 on the English one), and the model
-gives a verdict (sprzeczne / zgodne / brak_podstaw) pointing to the deciding fragment. Input:
-data/processed/claims/<claims prompt>__<claims model>.jsonl. Output: data/processed/verdicts/<prompt>__<model>.jsonl,
-one line per claim (twierdzenie_id = <wypowiedz_id>#<nr>). Reruns skip claims done without error.
-  --testy     claims with an expected verdict from data/tests/verdict.csv -> <prompt>__<model>__tests.jsonl
+For each claim the AR6 index returns the best fragments from the SPMs and from the TSs, and the model gives a verdict
+(sprzeczne / zgodne / brak_podstaw) pointing to the deciding fragment. Retrieval (--wyszukiwanie): `en` embedding of the
+English paraphrase (default), `pl` of the Polish one, `bm25` on the English one, `rrf` all three merged (the frozen
+run); --embedding picks the embedding model (its index: build_ar6.py --model). Input:
+data/processed/claims/<claims prompt>__<claims model>.jsonl. Output:
+data/processed/verdicts/<prompt>__<model><variant>.jsonl (variant: __en, __pl, __bm25, __en_<embedding model>...;
+none for rrf with bge-m3), one line per claim (twierdzenie_id = <wypowiedz_id>#<nr>). Reruns skip claims done without
+error.
+  --testy     claims with an expected verdict from data/tests/verdict.csv -> <...><variant>__tests.jsonl
   --ids FILE  claims of `extract_claims.py --ids FILE` (the same FILE); results get the same suffix
 
 Example:
   python src/verify_claims.py
-  python src/verify_claims.py --model gemma4:12b --twierdzenia-model gemma4:12b
-  python src/verify_claims.py --testy --model gemma4:12b
+  python src/verify_claims.py --wyszukiwanie pl
+  python src/verify_claims.py --wyszukiwanie en --embedding qwen3-embedding:8b
+  python src/verify_claims.py --wyszukiwanie rrf --testy      # the frozen run's retrieval
   python src/verify_claims.py --ids data/gold/sample.csv
 """
 import argparse
@@ -71,19 +76,23 @@ def main():
     ap.add_argument("--num-ctx", type=int, default=llm.VERDICT_NUM_CTX)
     ap.add_argument("--testy", action="store_true", help="claims with expected verdicts from data/tests/verdict.csv")
     ap.add_argument("--ids", help="the CSV given to extract_claims.py --ids")
+    runs.add_retrieval_args(ap)
     a = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S")
 
     suffix = f"__{Path(a.ids).stem}" if a.ids else ""
     source = runs.out_path("claims", a.twierdzenia_prompt, a.twierdzenia_model or a.model, suffix)
-    out = runs.out_path(STEP, a.prompt, a.model, "__tests" if a.testy else suffix)
+    out = runs.verdicts_path(a.prompt, a.model, a.wyszukiwanie, a.embedding, "__tests" if a.testy else suffix)
     done = runs.done(out, "twierdzenie_id")
     todo = [c for c in (tests() if a.testy else claims(source)) if c["twierdzenie_id"] not in done]
-    log.info("%d claims to judge from %s -> %s", len(todo), TESTS.name if a.testy else source.name, out)
+    log.info("%d claims to judge from %s -> %s (retrieval %s%s)", len(todo), TESTS.name if a.testy else source.name,
+             out, a.wyszukiwanie, "" if a.wyszukiwanie == "bm25" else f", {a.embedding}")
     if not todo:
         return report(out) if a.testy else None
-    index = ar6.Index()
-    vectors = ar6.embed([q for c in todo for q in (c["twierdzenie"], c["twierdzenie_en"])]).reshape(len(todo), 2, -1)
+    index = ar6.Index(model=a.embedding, method=a.wyszukiwanie)
+    texts = [ar6.query_texts(a.wyszukiwanie, c["twierdzenie"], c["twierdzenie_en"]) for c in todo]
+    vectors = (ar6.embed([q for t in texts for q in t], a.embedding, query=True).reshape(len(todo), len(texts[0]), -1)
+               if texts[0] else [None] * len(todo))
     prompt = llm.load_topic_prompt(a.prompt)
     out.parent.mkdir(parents=True, exist_ok=True)
     secs = []
@@ -97,6 +106,7 @@ def main():
             row = {k: c[k] for k in ("twierdzenie_id", "wypowiedz_id", "nr", "twierdzenie", "twierdzenie_en", "oczekiwane")
                    if k in c}
             runs.append(f, {**row, "model": a.model, "prompt": a.prompt, "twierdzenia_z": source.name,
+                            "wyszukiwanie": a.wyszukiwanie, "embedding": None if a.wyszukiwanie == "bm25" else a.embedding,
                             "komputer": runs.HOST, **ans})
             secs += [ans["sekundy"]] if ans["sekundy"] else []
             log.info("%d/%d %s: %s %s%s", i, len(todo), c["twierdzenie_id"], ans["werdykt"], ans.get("ar6") or "",

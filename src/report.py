@@ -127,8 +127,9 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--model", default=llm.PIPELINE_MODEL)
     ap.add_argument("--werdykt-prompt", default=runs.VERDICT_PROMPT)
+    runs.add_retrieval_args(ap, frozen=True)
     a = ap.parse_args()
-    slug = runs.labels_path(a.model, a.werdykt_prompt).stem
+    slug = runs.labels_path(a.model, a.werdykt_prompt, a.wyszukiwanie, a.embedding).stem
     try:
         text = build(slug)
     except FileNotFoundError as e:

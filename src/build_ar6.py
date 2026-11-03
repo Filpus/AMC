@@ -1,10 +1,11 @@
 """AR6 knowledge base: downloads the SPM and TS of WGI-WGIII, splits them into fragments and embeds them (amc/ar6.py).
 
 Output (data/ar6/, outside the repository): pdf/, fragments.parquet, embeddings_<model>.npy. Needs Ollama with the
-embedding model (`ollama pull bge-m3`). Existing PDFs are not downloaded again.
+embedding model (`ollama pull embeddinggemma:300m`). Existing PDFs are not downloaded again.
 
 Example:
   python src/build_ar6.py
+  python src/build_ar6.py --model qwen3-embedding:8b     # index of another embedding model (verify_claims.py --embedding)
   python src/build_ar6.py --pokaz "human influence has warmed the climate"
 """
 import argparse

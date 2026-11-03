@@ -17,7 +17,7 @@ Opcje, wejście i wyjście każdego skryptu: `python src/<skrypt>.py --help`.
 dane      fetch_sejm.py, fetch_komisje.py → build_corpus.py → korpus wypowiedzi
 pipeline  classify_topic.py     czy wypowiedź dotyczy klimatu (cała populacja: 43 991 wypowiedzi posłów)
           extract_claims.py     twierdzenia mówcy z wypowiedzi o klimacie
-          verify_claims.py      werdykt wobec AR6: sprzeczne / zgodne / brak_podstaw (RAG; albo PaperQA2)
+          verify_claims.py      werdykt wobec AR6: sprzeczne / zgodne / brak_podstaw (RAG: embedding EN / PL, BM25 albo RRF; albo PaperQA2)
           label_statements.py   wypowiedź sprzeczna = co najmniej jedno twierdzenie sprzeczne
 gold      gold_standard.py      próba warstwowa według etykiet modelu, strona do anotacji (jeden anotator albo podział próby; kappa drugiego anotatora opcjonalnie)
 wynik     estimate.py           jakość etykiet (TPR/TNR/F1 z wagami), odsetki z golda, test hipotezy
@@ -30,7 +30,8 @@ wynik     estimate.py           jakość etykiet (TPR/TNR/F1 z wagami), odsetki 
 ```bash
 pip install -r requirements.txt
 ollama pull gemma4:12b         # model pipeline'u (https://ollama.com)
-ollama pull bge-m3             # embeddingi do wyszukiwania w AR6
+ollama pull embeddinggemma:300m # embeddingi do wyszukiwania w AR6
+ollama pull bge-m3              # tylko do odtworzenia zamrożonego przebiegu (--embedding bge-m3)
 ```
 
 Korpus i PDF-y AR6 są poza repo (dane z API, prawa IPCC); odtwarzają je polecenia niżej. Wyniki pełnego przebiegu
@@ -47,6 +48,8 @@ python src/build_corpus.py
 # pipeline: każdy krok wznawia się od miejsca przerwania; odcisk populacji musi być 43991 / 2cdcf73e5b
 python src/pipeline.py --n 200                    # szybki test na 200 wypowiedziach
 python src/pipeline.py                            # cała populacja
+python src/pipeline.py --wyszukiwanie pl          # inne wyszukiwanie w AR6: en (domyślne), pl, bm25, rrf
+python src/pipeline.py --embedding qwen3-embedding:8b   # inny model embeddingów
 python src/pipeline.py --weryfikator paperqa      # werdykt przez PaperQA2 zamiast RAG-a
 
 # gold standard i test hipotezy
@@ -66,12 +69,26 @@ python src/report.py                              # krok 9: results/<model>_rapo
 pytest
 ```
 
+Wyszukiwanie w AR6 wybiera `--wyszukiwanie` (w `pipeline.py`, `verify_claims.py`, `label_statements.py`, `estimate.py`,
+`gold_standard.py losuj`, `robustness.py` i `report.py`): `en` (domyślnie) to embedding angielskiej parafrazy twierdzenia, `pl` to embedding polskiej,
+`bm25` to wyszukiwanie po słowach w angielskiej, a `rrf` łączy wszystkie trzy rankingi. Model embeddingów wybiera
+`--embedding` (domyślnie EmbeddingGemma `embeddinggemma:300m`; indeks innego modelu buduje `build_ar6.py --model …`).
+Każdy wariant zapisuje werdykty i etykiety pod własną nazwą, np.
+`verdicts/verdict_v1__gemma4_12b__en_embeddinggemma_300m.jsonl` i `labels/gemma4_12b__en_embeddinggemma_300m.csv`;
+nazwy bez modelu embeddingów (`__en`, `__pl`, `__bm25`) oznaczają bge-m3. Przebieg w repo liczono z `rrf` i bge-m3
+(pliki bez sufiksu) i z jego etykiet wylosowano próbę golda, dlatego `estimate.py`, `gold_standard.py losuj`,
+`robustness.py` i `report.py` domyślnie biorą ten przebieg (`--wyszukiwanie rrf --embedding bge-m3`); inny wariant
+trzeba im podać wprost.
+
 ## Eksploracja
 
 `notebooks/01_eda_wypowiedzi.ipynb` opisuje korpus i słowniki tematów. `notebooks/02`–`03` i `src/classify.py` to
 etap A, liczony dla wcześniejszej wersji hipotezy (okna czasowe A i B). `src/report_sceptycyzm.py` daje przegląd
 wypowiedzi z markerem sceptycyzmu. `notebooks/04_gold_standard.ipynb` krótko opisuje wyniki golda (skład próby, jakość
-etykiet modelu, odsetki z kroku 7) na podstawie plików z `data/processed/results/`.
+etykiet modelu, odsetki z kroku 7) na podstawie plików z `data/processed/results/`. `notebooks/05_porownanie_weryfikacji.ipynb`
+porównuje przebiegi Gemmy 4 12B na tych samych twierdzeniach, w których zmienia się tylko wyszukiwanie fragmentów AR6
+albo weryfikator (RRF z bge-m3, EmbeddingGemma EN i PL, BM25, PaperQA2): werdykty i etykiety na populacji oraz jakość
+na goldzie. Warianty wyszukiwania z bge-m3 i Qwen3-Embedding są tylko lokalnie i bez nich notatnik je pomija.
 
 ## Struktura repo
 

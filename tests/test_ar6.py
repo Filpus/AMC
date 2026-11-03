@@ -33,3 +33,37 @@ def test_index_search_takes_spm_and_ts_parts():
     idx = ar6.Index(df, vec)
     res = idx.search("x", query_vectors=np.array([[0.1, 0.2, 0.9, 0.4]], dtype=np.float32), per_part=1)
     assert res["etykieta"].tolist() == ["C", "D"]
+
+
+def test_search_methods():
+    df = pd.DataFrame({"czesc": ["SPM", "SPM", "SPM"], "etykieta": list("ABC"),
+                       "tekst": ["sea level rise", "heavy precipitation", "glacier retreat"]})
+    vec = np.eye(3, dtype=np.float32)
+    pl, en = np.array([[1, 0, 0]], dtype=np.float32), np.array([[0, 1, 0]], dtype=np.float32)
+    top = lambda method, qv: ar6.Index(df, vec, method=method).search("pl", "glacier", 1, query_vectors=qv)["etykieta"].item()
+    assert top("pl", pl) == "A" and top("en", en) == "B" and top("bm25", None) == "C"
+    assert top("rrf", np.vstack([pl, pl])) == "A"
+    assert ar6.query_texts("en", "pl", "en") == ["en"] and ar6.query_texts("bm25", "pl", "en") == []
+    assert ar6.query_texts("rrf", "pl", "en") == ["pl", "en"]
+    assert ar6.Index(df, method="bm25").vec is None
+
+
+def test_model_prefixes_for_queries_and_documents(monkeypatch):
+    sent = []
+
+    class Response:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"embeddings": [[1.0, 0.0]] * len(sent[-1])}
+
+    monkeypatch.setattr(ar6.requests, "post", lambda url, json, timeout: sent.append(json["input"]) or Response())
+    ar6.embed(["claim"], "qwen3-embedding:8b", query=True)
+    ar6.embed(["fragment"], "qwen3-embedding:8b")
+    ar6.embed(["claim"], "bge-m3", query=True)
+    ar6.embed(["claim"], "embeddinggemma:300m", query=True)
+    ar6.embed(["fragment"], "embeddinggemma:300m")
+    assert sent[0][0].startswith("Instruct: ") and sent[0][0].endswith("Query: claim")
+    assert sent[1] == ["fragment"] and sent[2] == ["claim"]
+    assert sent[3] == ["task: fact checking | query: claim"] and sent[4] == ["title: none | text: fragment"]

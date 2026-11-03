@@ -1,3 +1,4 @@
+import argparse
 from string import Formatter
 
 from amc import llm, runs
@@ -36,5 +37,28 @@ def test_prompt_uses_paperqa_variables_only():
 
 
 def test_labels_path():
-    assert runs.labels_path("gemma4:12b").name == "gemma4_12b.csv"
-    assert runs.labels_path("gemma4:12b", runs.PAPERQA_PROMPT).name == "gemma4_12b__paperqa_v0.csv"
+    assert runs.labels_path("gemma4:12b", search="rrf", embedding="bge-m3").name == "gemma4_12b.csv"
+    assert runs.labels_path("gemma4:12b", runs.PAPERQA_PROMPT, embedding="bge-m3").name == "gemma4_12b__paperqa_v0.csv"
+    assert runs.labels_path("gemma4:12b", runs.PAPERQA_PROMPT).name == "gemma4_12b__paperqa_v0__embeddinggemma_300m.csv"
+    assert runs.labels_path("gemma4:12b", embedding="bge-m3").name == "gemma4_12b__en.csv"
+    assert runs.labels_path("gemma4:12b").name == "gemma4_12b__en_embeddinggemma_300m.csv"
+    assert runs.labels_path("gemma4:12b", search="bm25", embedding="qwen3-embedding:8b").name == "gemma4_12b__bm25.csv"
+    assert runs.labels_path("gemma4:12b", embedding="qwen3-embedding:8b").name == "gemma4_12b__en_qwen3-embedding_8b.csv"
+
+
+def test_analysis_scripts_default_to_the_frozen_run():
+    for frozen, name in [(True, "gemma4_12b.csv"), (False, "gemma4_12b__en_embeddinggemma_300m.csv")]:
+        ap = argparse.ArgumentParser()
+        runs.add_retrieval_args(ap, frozen=frozen)
+        a = ap.parse_args([])
+        assert runs.labels_path("gemma4:12b", runs.VERDICT_PROMPT, a.wyszukiwanie, a.embedding).name == name
+
+
+def test_verdicts_path_keeps_the_frozen_run_name():
+    assert runs.verdicts_path("verdict_v1", "gemma4:12b", "rrf", "bge-m3").name == "verdict_v1__gemma4_12b.jsonl"
+    assert runs.verdicts_path("verdict_v1", "gemma4:12b", "rrf", "bge-m3", suffix="__sample").name == "verdict_v1__gemma4_12b__sample.jsonl"
+    assert runs.verdicts_path("verdict_v1", "gemma4:12b", "pl", "bge-m3", suffix="__tests").name == "verdict_v1__gemma4_12b__pl__tests.jsonl"
+    assert runs.verdicts_path("verdict_v1", "gemma4:31b", suffix="__sample").name == "verdict_v1__gemma4_31b__en_embeddinggemma_300m__sample.jsonl"
+    assert runs.verdicts_path(runs.PAPERQA_PROMPT, "gemma4:12b", "pl", "bge-m3").name == "paperqa_v0__gemma4_12b.jsonl"
+    assert runs.verdicts_path(runs.PAPERQA_PROMPT, "gemma4:12b", suffix="__sample").name == \
+        "paperqa_v0__gemma4_12b__embeddinggemma_300m__sample.jsonl"
