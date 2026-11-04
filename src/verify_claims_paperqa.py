@@ -2,7 +2,8 @@
 
 PaperQA2 with its default settings (settings() lists the exceptions) splits the six AR6 PDFs (SPM and TS of WGI-WGIII,
 data/ar6/pdf/) into chunks, retrieves chunks for the claim (--embedding in Ollama), summarises each against the claim and
-answers with the QA prompt prompts/<prompt>.md (the rules of verdict_v1 with PaperQA citation keys). The answer starts
+answers with the QA prompt prompts/<prompt>.md (PaperQA citation keys and the rules of verdict_v1 in paperqa_v0, of
+verdict_v2, the current codebook, in paperqa_v1). The answer starts
 with the verdict; `ar6` lists the cited chunks ("WGI_SPM pages 8-9"), not finding numbers. sprzeczne / zgodne without a
 cited chunk becomes brak_podstaw, as in verify_claims.py (`werdykt_bez_ar6` keeps the model's verdict). Input, output,
 --testy and --ids as in verify_claims.py: data/processed/verdicts/<prompt>__<model>__<embedding model>.jsonl (no
@@ -13,6 +14,7 @@ Example:
   python src/verify_claims_paperqa.py
   python src/verify_claims_paperqa.py --testy
   python src/verify_claims_paperqa.py --ids data/gold/sample.csv
+  python src/verify_claims_paperqa.py --prompt paperqa_v1 --twierdzenia-prompt claims_v2
 """
 import argparse
 import asyncio

@@ -94,7 +94,8 @@ na goldzie. Warianty wyszukiwania z bge-m3 i Qwen3-Embedding są tylko lokalnie 
 
 ```
 src/             skrypty (nakładki CLI); logika w src/amc/
-prompts/         prompty LLM: topic_v0, claims_v1, verdict_v1, paperqa_v0; etap A: etap_a_v2, weryfikacja_v*
+prompts/         prompty LLM: topic_v0, claims_v1, verdict_v1, paperqa_v0 (zamrożony przebieg); topic_v1, claims_v2,
+                 verdict_v2, paperqa_v1 (według obecnego codebooka); etap A: etap_a_v2, weryfikacja_v*
 data/raw/        odpowiedzi API (poza repo)
 data/interim/    tabele z API (w repo tylko historia klubów)
 data/processed/  korpus (poza repo), wyniki pipeline'u (topic/, claims/, verdicts/, labels/, results/), tabele z EDA

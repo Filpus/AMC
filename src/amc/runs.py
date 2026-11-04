@@ -14,6 +14,10 @@ VERDICT_PROMPT = "verdict_v1"
 PAPERQA_PROMPT = "paperqa_v0"
 
 
+def is_paperqa(prompt):
+    return prompt.startswith("paperqa_")
+
+
 def model_slug(model):
     return model.replace("/", "_").replace(":", "_")
 
@@ -34,9 +38,9 @@ def add_retrieval_args(ap, frozen=False):
 
 def retrieval_tag(verdict_prompt, search=ar6.DEFAULT_SEARCH, embedding=ar6.EMBED_MODEL):
     """File name part of the retrieval variant: none for rrf with bge-m3 (the frozen run), else __<search>, followed by
-    _<embedding model> for any model but bge-m3. PaperQA2 has its own retrieval: only __<embedding model>, none for
-    bge-m3."""
-    if verdict_prompt == PAPERQA_PROMPT:
+    _<embedding model> for any model but bge-m3. PaperQA2 (paperqa_* prompts) has its own retrieval: only
+    __<embedding model>, none for bge-m3."""
+    if is_paperqa(verdict_prompt):
         return "" if embedding == ar6.FROZEN_EMBED_MODEL else f"__{model_slug(embedding)}"
     if (search, embedding) == ("rrf", ar6.FROZEN_EMBED_MODEL):
         return ""
@@ -50,8 +54,8 @@ def verdicts_path(verdict_prompt, model, search=ar6.DEFAULT_SEARCH, embedding=ar
 
 
 def labels_path(model, verdict_prompt=VERDICT_PROMPT, search=ar6.DEFAULT_SEARCH, embedding=ar6.EMBED_MODEL):
-    """data/processed/labels/<model>[__<prompt>]<retrieval tag>.csv; another verdict prompt (PaperQA2: paperqa_v0)
-    gets __<prompt>."""
+    """data/processed/labels/<model>[__<prompt>]<retrieval tag>.csv; another verdict prompt (also PaperQA2:
+    paperqa_v0, paperqa_v1) gets __<prompt>."""
     suffix = "" if verdict_prompt == VERDICT_PROMPT else f"__{verdict_prompt}"
     return PROCESSED / "labels" / f"{model_slug(model)}{suffix}{retrieval_tag(verdict_prompt, search, embedding)}.csv"
 

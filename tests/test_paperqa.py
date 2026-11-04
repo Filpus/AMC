@@ -1,6 +1,8 @@
 import argparse
 from string import Formatter
 
+import pytest
+
 from amc import llm, runs
 from verify_claims_paperqa import parse_answer
 
@@ -28,8 +30,9 @@ def test_cannot_answer_and_missing_label():
     assert r["werdykt"] is None and r["blad"].startswith("no verdict")
 
 
-def test_prompt_uses_paperqa_variables_only():
-    prompt = llm.load_prompt(runs.PAPERQA_PROMPT)
+@pytest.mark.parametrize("name", ["paperqa_v0", "paperqa_v1"])
+def test_prompt_uses_paperqa_variables_only(name):
+    prompt = llm.load_prompt(name)
     fields = {f for _, f, _, _ in Formatter().parse(prompt) if f is not None}
     assert {"context", "question"} <= fields <= PAPERQA_QA_VARIABLES
     prompt.format(context="c", answer_length="about 120 words", question="q", example_citation="(pqac-0f650d59)",
@@ -62,3 +65,6 @@ def test_verdicts_path_keeps_the_frozen_run_name():
     assert runs.verdicts_path(runs.PAPERQA_PROMPT, "gemma4:12b", "pl", "bge-m3").name == "paperqa_v0__gemma4_12b.jsonl"
     assert runs.verdicts_path(runs.PAPERQA_PROMPT, "gemma4:12b", suffix="__sample").name == \
         "paperqa_v0__gemma4_12b__embeddinggemma_300m__sample.jsonl"
+    assert runs.verdicts_path("paperqa_v1", "gemma4:12b", suffix="__tests").name == \
+        "paperqa_v1__gemma4_12b__embeddinggemma_300m__tests.jsonl"
+    assert runs.labels_path("gemma4:12b", "paperqa_v1").name == "gemma4_12b__paperqa_v1__embeddinggemma_300m.csv"
