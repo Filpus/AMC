@@ -1,38 +1,19 @@
 # Codebook
 
-Instrukcja anotacji gold standardu i podstawa promptów klasyfikatora. Zakres i etykiety według suplementu karty
-eksploracji, układ kategorii według Halterman, Keith (2025): definicja, kryteria włączenia i wyłączenia, przykłady.
-
-**Status (2026-10-19):** wersja zgodna z suplementem (`docs/release-supplement.md`) i z pipeline'em (prompty
-`topic_v0`, `claims_v1`, `verdict_v1`, próba `data/gold/sample.csv`). Według tej wersji oznaczyliśmy gold standard.
-Decyzje i alternatywy są w sekcji 10, pytania w sekcji 11.
+Instrukcja anotacji gold standardu i podstawa promptów klasyfikatora. Układ kategorii (definicja, test, przypadki
+pozytywne i negatywne, przykłady) według Halterman, Keith (2025).
 
 ## 1. Zakres
 
 | | |
 |---|---|
 | mierzymy | odsetek wypowiedzi sprzecznych z konsensusem klimatycznym (AR6) wśród wypowiedzi o klimacie, osobno dla prawicy i reszty |
-| jednostka | merytoryczne wystąpienie jednego mówcy na posiedzeniu plenarnym (bez prowadzącego obrady); mianownik: wypowiedzi o klimacie (sekcja 7) |
+| jednostka | merytoryczne wystąpienie jednego mówcy na posiedzeniu plenarnym (bez prowadzącego obrady) |
+| mianownik | wypowiedzi o klimacie (`klimat = 1`) |
 | okres | 13.11.2023–15.09.2026 (X kadencja) |
-| populacja | wypowiedzi posłów, w tym ministrów-posłów: 43 991 (prawica 20 162, reszta 23 829) |
-| grupy | **prawica**: klub w dniu wypowiedzi to PiS, RozwojPlus, Konfederacja albo Konfederacja_KP; **reszta**: pozostali, w tym Republikanie i Kukiz15 |
-| źródło konsensusu | AR6 IPCC: WGI, WGII, WGIII |
-
-Grupa jest metadaną z korpusu, nie polem anotacji. Anotator nie widzi mówcy ani klubu (sekcja 8).
-
-**Zmiany klubów.** Liczy się klub w dniu wypowiedzi, jak w suplemencie, więc poseł, który zmienił klub, trafia do
-różnych grup w różnych okresach:
-- dwaj dzisiejsi posłowie Konfederacji_KP (m.in. Roman Fritz) byli niezrzeszeni od 19.03 do 3.06.2025, więc ich 25
-  wypowiedzi z tego czasu należy do reszty. Jedna z nich (`10_32_2025-04-03_256`) nazywa absurdem to, „że zmiany
-  klimatyczne spowodowane zostały przez normalnych ludzi”;
-- posłowie dzisiejszego RozwojPlus byli wcześniej w Kukiz15 (64 wypowiedzi), w Republikanach (40) albo niezrzeszeni (18);
-- 357 wypowiedzi dwóch posłów z czasu, gdy byli w PiS (dziś niezrzeszeni), należy do prawicy.
-
-To nie jest błąd przypisania ze źródła błędu 7 w suplemencie (zmiana klubu widoczna w danych dopiero przy pierwszym
-głosowaniu po niej): te wypowiedzi są przypisane zgodnie z definicją. Problem leży w samej definicji, bo klub w dniu
-wypowiedzi nie zawsze odpowiada poglądom mówcy. Dotyczy to kilku mówców o wyrazistych poglądach, więc nie jest losowe
-względem treści, a przy małej liczbie wypowiedzi sprzecznych liczy się każda (`10_32_2025-04-03_256` jest sprzeczna,
-a trafia do reszty). Proponujemy opisać to jako osobne ograniczenie (pytanie 2).
+| populacja | wypowiedzi posłów, w tym ministrów-posłów: 43 991 (prawica 20 466, reszta 23 525) |
+| grupy | **prawica**: klub w dniu wypowiedzi to PiS, RozwojPlus, Kukiz15, Konfederacja albo Konfederacja_KP; **reszta**: pozostali, w tym Republikanie i niezrzeszeni |
+| źródło konsensusu | AR6 IPCC: WGI, WGII, WGIII (SPM i TS) |
 
 ## 2. Przebieg anotacji
 
@@ -50,71 +31,84 @@ wypowiedź ──> o klimacie? ──tak──> twierdzenia (stanowisko mówcy) 
 | `ar6` | twierdzenie | identyfikator fragmentu i cytat, np. `WGI SPM A.1` „It is unequivocal that human influence has warmed…” |
 | `sprzeczna` | wypowiedź | `1`, jeśli co najmniej jedno twierdzenie jest `sprzeczne`, inaczej `0`; tylko dla `klimat = 1` |
 
-Twierdzenie oceniamy zawsze w kontekście całej wypowiedzi. Model wypełnia wszystkie pola (prompty `topic_v0`,
-`claims_v1`, `verdict_v1`). Anotator gold standardu przechodzi tę samą drogę według tych samych reguł, ale zapisuje
-tylko etykiety wypowiedzi: `tematyczna` (to samo co `klimat`), `sprzeczna` (tylko przy
-tematycznej) i opcjonalny `komentarz` do analizy błędów (sekcja 8). Twierdzeń i fragmentów AR6 nie zapisuje.
+Twierdzenie oceniamy zawsze w kontekście całej wypowiedzi. Model wypełnia wszystkie pola. Anotator gold standardu
+przechodzi tę samą drogę według tych samych reguł, ale zapisuje tylko etykiety wypowiedzi: `tematyczna` (to samo co
+`klimat`), `sprzeczna` (tylko przy tematycznej) i opcjonalny `komentarz`.
 
-## 3. Wypowiedź o klimacie (`klimat`, krok 2)
+## 3. Wypowiedź o klimacie (`klimat`)
 
-**Definicja.** `klimat = 1`, gdy klimat jest jednym z wątków wypowiedzi: mówca mówi coś o zmianie klimatu (przyczyny,
-skutki, trendy, stan nauki) albo o polityce klimatycznej. Przelotna wzmianka nie wystarcza.
+**Definicja.** `klimat = 1`, gdy mówca choć w jednym zdaniu coś twierdzi o zmianie klimatu, polityce klimatycznej albo
+źródłach energii. Wzmianka bez twierdzenia nie wystarcza.
 
-**Test.** Zdanie o klimacie odpowiada na pytanie „co mówca mówi o klimacie lub polityce klimatycznej?” (wątek, `1`)
-czy tylko „w jakich okolicznościach dzieje się to, o czym mówi?” (tło, `0`). Wystarczy jeden akapit-wątek, niezależnie
-od długości wypowiedzi.
+**Test.** Czy zdanie mówi albo jednoznacznie sugeruje, co dzieje się z klimatem, co go zmienia, jakie skutki ma
+polityka klimatyczna albo ile kosztuje, czy działa i ile emituje dane źródło energii? Jeśli tak, `1`. Jeśli klimat,
+polityka klimatyczna albo energetyka są tylko okolicznością, nazwą, epitetem albo przedmiotem sporu o to, kto co
+zrobił, `0`.
 
-**Włączamy:**
-- zmianę klimatu, jej przyczyny, skutki i trendy, stan nauki o klimacie;
-- politykę klimatyczną: redukcję emisji, ETS i ETS2, Zielony Ład, Fit for 55, dekarbonizację, neutralność klimatyczną,
-  adaptację, OZE i inne technologie jako sposób ograniczania emisji;
-- negowanie zmiany klimatu lub wyśmiewanie jej jako ideologii, jeśli mówca coś o niej twierdzi, także zaprzeczanie, że
-  dane zjawisko (powódź, susza) ma związek ze zmianą klimatu.
+Stanowisko mówcy nie ma znaczenia: krytyka i obrona polityki klimatycznej, OZE, atomu albo węgla dostają tę samą
+etykietę.
 
-**Wyłączamy:**
+**Tematyczne (`klimat = 1`):**
+- zmiana klimatu: przyczyny, skutki, trendy, stan nauki, także jako argument w innym temacie („musimy wzmocnić wały, bo
+  klimat się zmienia, a powodzie przychodzą coraz częściej”);
+- negowanie albo wyśmiewanie zmiany klimatu, jeśli mówca coś o niej twierdzi, także zaprzeczanie, że dane zjawisko
+  (powódź, susza) ma związek ze zmianą klimatu;
+- polityka klimatyczna (ETS, ETS2, CBAM, Zielony Ład, Fit for 55, cele redukcji emisji i neutralności klimatycznej,
+  dekarbonizacja, adaptacja) i jej skutki, także dla cen energii, przemysłu i gospodarki („ETS podnosi ceny prądu”,
+  „cel na 2040 r. zniszczy przemysł”);
+- koszty, wykonalność, niezawodność, potencjał i emisje źródeł energii (OZE, atom, węgiel, gaz, biogaz, wodór), także
+  bez wzmianki o klimacie („wiatraki dają najdroższy prąd”, „OZE dają tańszą energię niż węgiel”, „bez atomu system nie
+  będzie stabilny”);
+- opis przepisu ze stwierdzeniem o klimacie (np. o tym, jakie czynniki ocieplają klimat);
+- cudza teza, którą mówca przyjmuje albo z której wyciąga wniosek (sekcja 5).
+
+**Nietematyczne (`klimat = 0`):**
 - „klimat” w innym znaczeniu (polityczny, inwestycyjny, społeczny);
-- nazwy urzędów i ustaw bez treści o klimacie (Ministerstwo Klimatu i Środowiska);
-- zmianę klimatu jako tło innego tematu („w dobie zmian klimatu”);
-- „klimatyzm”, „religia klimatyczna” itp. użyte tylko jako epitet wobec czegoś innego;
-- smog, pogodę i klęski żywiołowe bez odniesienia do zmiany klimatu;
-- politykę energetyczną (ceny, kopalnie, sieci) bez odniesienia do emisji lub klimatu.
-
-**Warstwy próby** wyznacza etykieta modelu (sekcja 8), a nie słownik. Anotator nie wie, z której warstwy pochodzi
-wypowiedź.
+- nazwy urzędów, ustaw i komisji (Ministerstwo Klimatu i Środowiska);
+- zmiana klimatu jako okoliczność, bez stwierdzenia, co powoduje („w dobie zmian klimatu”, „w obliczu kryzysu
+  klimatycznego”);
+- „klimatyzm”, „religia klimatyczna” i podobne epitety bez twierdzenia;
+- smog, pogoda i klęski żywiołowe bez odniesienia do zmiany klimatu;
+- polityka klimatyczna tylko nazwana, wyliczona albo w haśle („nie dla Zielonego Ładu”), pytania techniczne o nią
+  (np. jak rozliczać środki z ETS) i spór o to, kto ją przyjął albo poparł;
+- Zielony Ład w rolnictwie (ugorowanie, ekoschematy, środki ochrony roślin, dobrostan zwierząt) bez odniesienia do
+  emisji albo klimatu;
+- techniczna treść przepisów i procedur (kogo obejmują, terminy, zezwolenia, cel przepisu) bez stwierdzenia o klimacie
+  ani o skutkach;
+- energetyka bez twierdzenia o źródłach energii i o polityce klimatycznej: samo wymienienie źródła energii, ceny
+  energii niełączone z polityką klimatyczną ani ze źródłem energii, zatrudnienie w kopalniach, sieci, zasady rozliczeń,
+  dostawy paliw, terminy i wykonawcy inwestycji, spór o to, kto blokował inwestycje;
+- cudza wypowiedź albo prognoza przytoczona bez przyjęcia i bez wniosku.
 
 ## 4. Twierdzenia
 
-**Definicja.** Twierdzenie o stanie świata (fakt, zależność przyczynowa, trend, prognoza) dotyczące klimatu albo
-działań wobec jego zmiany, które da się porównać z AR6.
+**Definicja.** Twierdzenie o stanie świata (fakt, zależność przyczynowa, trend, prognoza) dotyczące klimatu, polityki
+klimatycznej albo źródeł energii. Zapisujemy je także wtedy, gdy AR6 najpewniej go nie rozstrzygnie (dane krajowe,
+koszty w Polsce); o tym decyduje werdykt.
 
-**Test.** Twierdzenie zapisujemy tylko wtedy, gdy raport taki jak AR6 mógłby je potwierdzić albo mu zaprzeczyć, choćby
-na poziomie świata albo regionu (dane o emisjach Polski i UE też się liczą). Twierdzenia o osobach, wydarzeniach
-politycznych, przepisach, procedurach albo kwotach pomijamy.
-
-**Włączamy:**
+**Zapisujemy:**
 - przyczyny, skutki i trendy („emisje CO2 ocieplają klimat”, „susze są skutkiem zmiany klimatu”);
 - stan nauki („naukowcy się spierają”, „modele klimatyczne się mylą”);
-- fakty i prognozy o skuteczności i wykonalności działań oraz potencjale technologii („OZE nie zapewnią dość energii”,
-  „redukcja emisji w UE nic nie zmieni”);
-- dane krajowe i statystykę (emisje Polski, udział UE w emisjach), zwykle z werdyktem `brak_podstaw`;
+- skuteczność i wykonalność działań oraz potencjał technologii („OZE nie zapewnią dość energii”, „redukcja emisji
+  w UE nic nie zmieni”);
+- koszty źródeł energii i skutki polityki klimatycznej dla cen i gospodarki;
+- dane krajowe i statystykę (emisje Polski, udział UE w emisjach);
 - pytania retoryczne, które niosą twierdzenie.
 
-**Wyłączamy:**
-- oceny, epitety i inwektywy („szaleństwo ideologiczne”, „religia klimatyzmu”);
-- twierdzenia o kosztach i tempie polityki klimatycznej („ETS podnosi ceny prądu”, „Zielony Ład zrujnuje rolnictwo”,
-  „transformacja jest za szybka”). Według suplementu (źródło błędu 4) to ocena polityczna, a nie zaprzeczanie
-  konsensusowi, więc nie może trafić do licznika;
+**Pomijamy:**
+- oceny, epitety i inwektywy („szaleństwo ideologiczne”, „religia klimatyzmu”), także oceny tempa i sensu polityki
+  („transformacja jest za szybka”);
 - postulaty („trzeba wyjść z ETS”);
 - zwykłe pytania (np. do ministra);
 - treść przepisów, procedury, terminy i kwoty;
-- twierdzenia o osobach i wydarzeniach politycznych (kto co powiedział, kto finansuje);
+- twierdzenia o osobach i wydarzeniach politycznych (kto co powiedział, kto co przyjął, kto finansuje);
 - smog i jakość powietrza.
 
 **Wniosek mówcy.** Gdy fakt, pytanie retoryczne albo sarkazm służy wnioskowi, zapisujemy osobno fakt i wniosek, a werdykt
 dostaje każde z nich. Przykład z Coan i in. (2021): „dziś jest zimno” jest prawdą, „dziś jest zimno, więc nie ma
 ocieplenia” już nie; zapisujemy „dziś jest zimno” i „nie ma globalnego ocieplenia”. Wniosek zapisujemy tylko wtedy, gdy
-wypowiedź go wyraża albo jednoznacznie sugeruje („więc”, pytanie retoryczne, zestawienie z tezą przeciwną, czytelna
-ironia). Jeśli trzeba go zgadywać, nie zapisujemy.
+wypowiedź go wyraża albo jednoznacznie sugeruje („więc”, „bo”, pytanie retoryczne, zestawienie z tezą przeciwną,
+czytelna ironia).
 
 Przykład: wypowiedź `10_7_2024-03-07_60`: „Zmiany klimatu, jak wiemy, na Ziemi występowały zawsze. Jest pytanie o ich
 przyczyny i tutaj naukowcy się spierają, jaki rzeczywisty wpływ ma człowiek na zmiany w klimacie.”
@@ -124,11 +118,8 @@ przyczyny i tutaj naukowcy się spierają, jaki rzeczywisty wpływ ma człowiek 
 | (a) Klimat Ziemi zmieniał się także w przeszłości. | `zgodne` |
 | (b) Nauka nie ustaliła, czy obecna zmiana klimatu wynika z działalności człowieka. | `sprzeczne` (WGI SPM A.1) |
 
-Fakt zapisany osobno nie zmienia etykiety wypowiedzi (`sprzeczna = 1` przez wniosek), bo mianownikiem są wypowiedzi
-(sekcja 7).
-
-**Parafraza:** jedno twierdzenie na wiersz, zrozumiałe bez wypowiedzi; liczby i stopień pewności mówcy zachowane; przy
-polemice zapisujemy stanowisko mówcy.
+**Parafraza:** jedno twierdzenie na wiersz, zrozumiałe bez wypowiedzi; liczby, obszar i stopień pewności mówcy
+zachowane.
 
 ## 5. Stanowisko mówcy
 
@@ -141,13 +132,7 @@ Zapisujemy tylko to, co mówca sam twierdzi albo przyjmuje:
 | przytacza twierdzenie, żeby je odrzucić albo wyśmiać (polemika) | **stanowisko mówcy**, czyli zaprzeczenie przytoczonego twierdzenia |
 | relacjonuje cudze twierdzenie bez oceny | nic |
 
-Przykład polemiki: `10_22_2024-11-20_257` (sekcja 9.2).
-
-Zasada jest potrzebna, bo posłowie często przytaczają przeciwnika, żeby się z nim nie zgodzić. Bez niej wypowiedź
-obalająca argumenty negujących zmianę klimatu dostałaby `sprzeczna = 1`, a taki błąd częściej dotyczyłby reszty.
-Rodzaju przytoczenia nie zapisujemy w osobnym polu: zasadę stosujemy od razu w parafrazie. W literaturze takiego pola
-nie ma: ClaimBuster ocenia, czy zdanie warto sprawdzić, CARDS oznacza akapity ze źródeł kontrariańskich (obecność
-twierdzenia oznacza tam poparcie), a Rojas i in. (2024) rozpoznają stanowisko klasyfikatorem całego tekstu.
+Bez tej zasady wypowiedź obalająca argumenty negujących zmianę klimatu dostałaby `sprzeczna = 1`.
 
 ## 6. Werdykt
 
@@ -157,41 +142,53 @@ twierdzenia oznacza tam poparcie), a Rojas i in. (2024) rozpoznają stanowisko k
 | `zgodne` | twierdzenie odpowiada ustaleniu AR6 |
 | `brak_podstaw` | pozostałe: AR6 się tym nie zajmuje (dane krajowe, zdarzenia po AR6, prawo UE) albo twierdzenie jest zbyt ogólne |
 
-**Oba kierunki.** Jak w suplemencie, `sprzeczne` jest twierdzenie, które przeczy AR6 w którąkolwiek stronę: umniejsza
-jego ustalenia („wpływ człowieka na klimat jest znikomy”) albo je wyolbrzymia („za 10 lat koniec świata”).
+Oceniamy wobec AR6, a nie wobec własnej wiedzy. `sprzeczne` i `zgodne` wymagają wskazania rozstrzygającego fragmentu
+(pole `ar6`).
+
+**Kierunek i skala.**
+- Twierdzenie, które przeczy kierunkowi ustalenia AR6 (zjawisko nie zachodzi, zachodzi odwrotnie, człowiek nie ma na nie
+  wpływu), jest `sprzeczne`.
+- Gdy kierunek się zgadza, a twierdzenie przesadza albo umniejsza skalę, `sprzeczne` jest tylko wtedy, gdy fragment AR6
+  podaje wielkość albo termin, z którymi twierdzenie się nie zgadza. Gdy AR6 takiej wielkości nie podaje, werdykt to
+  `brak_podstaw`. Przykłady: „poziom morza podnosi się o kilka centymetrów rocznie” jest `sprzeczne` (WGI SPM A.1.7:
+  3,7 mm rocznie w latach 2006–2018); „powódź stulecia będziemy mieć co roku” to `brak_podstaw`, bo AR6 mówi, że powodzie
+  w Europie Zachodniej i Środkowej, w tym w Polsce, będą częstsze (WGI TS.4.3.2.5), ale nie podaje, jak często.
+- Kierunek zmian klimatu w Polsce (opady, powodzie, susze, temperatura) oceniamy wobec ustaleń AR6 dla regionu Europa
+  Zachodnia i Środkowa (*West and Central Europe*, WCE), do którego należy Polska.
 
 **Liczby i statystyki.** `sprzeczne` albo `zgodne` tylko wtedy, gdy fragment AR6 podaje tę samą wielkość co
 twierdzenie: ten sam obszar (świat, region, kraj), ten sam gaz (CO2 albo wszystkie gazy cieplarniane), ten sam okres
 i tę samą miarę (emisja roczna, skumulowana, na mieszkańca). Gdy fragment podaje inną wielkość, werdykt to
-`brak_podstaw`, nawet jeśli liczby się różnią albo przypadkiem się zgadzają. Europa to nie Unia Europejska. Gdy
-twierdzenie nie mówi, o jaki okres albo miarę chodzi, a fragment podaje konkretną, to też inna wielkość. Liczb
-z rysunków, których nie da się jednoznacznie przypisać do regionu, nie używamy.
+`brak_podstaw`, nawet jeśli liczby się różnią albo przypadkiem się zgadzają. Europa to nie Unia Europejska. Twierdzenie
+o stanie obecnym („już”, „teraz”) porównujemy z najnowszym okresem, który podaje AR6. Gdy twierdzenie nie mówi, o jaką
+miarę chodzi, a fragment podaje konkretną, to inna wielkość. Liczb z rysunków, których nie da się jednoznacznie
+przypisać do regionu, nie używamy.
 
-**Koszty i ceny.** Twierdzenia o kosztach, cenach, konkurencyjności gospodarki i tempie polityki klimatycznej („ETS
-podnosi ceny prądu”, „transformacja jest za droga”) to ocena polityczna, a nie nauka o klimacie: werdykt `brak_podstaw`.
-Takich twierdzeń w ogóle nie wypisujemy (sekcja 4); ta reguła obejmuje te, które mimo to trafią do oceny.
+**Koszty, ceny i wykonalność.** Oceniamy tylko twierdzenia ogólne o technologii albo źródle energii: o koszcie energii
+z danego źródła, o tym, czy jedne źródła mogą zastąpić inne, czy system oparty na OZE może działać niezawodnie. Fragment
+AR6 musi mówić o tej samej mierze (np. o koszcie jednostkowym energii elektrycznej, a nie o cenie dla odbiorcy). Werdykt
+`brak_podstaw` dostają twierdzenia o:
+- Polsce, UE i innych konkretnych krajach, regionach, elektrowniach i inwestycjach;
+- obecnych cenach, rachunkach, taryfach i dopłatach;
+- skutkach polityki klimatycznej dla cen, przemysłu i gospodarki kraju albo regionu. AR6 podaje skutki globalne (np. dla
+  PKB świata, WGIII SPM C.12.2) i nie rozstrzyga o gospodarce Polski ani UE.
 
 **Redukcja emisji w jednym regionie.** Twierdzenie, że redukcja emisji w jednym kraju albo regionie (np. w Polsce,
 w UE) nic nie zmieni w sprawie klimatu, przeczy ustaleniu AR6, że ocieplenie zależy od skumulowanej emisji CO2 (WGI
 SPM D.1, D.1.1), więc jest `sprzeczne`.
 
-**Źródła w AR6.** Każdy raport grupy roboczej ma trzy warstwy: SPM (*Summary for Policymakers*, streszczenie dla
-decydentów, kilkadziesiąt stron zatwierdzanych przez rządy zdanie po zdaniu), TS (*Technical Summary*, streszczenie
-techniczne, ok. 100 stron) i rozdziały (2–3 tys. stron). Oceniamy tylko wobec SPM i TS WGI, WGII i WGIII: najpierw SPM,
-potem TS. Do rozdziałów nie sięgamy, także przez odsyłacze w nawiasach klamrowych (np. `{2.3}`), bo model widzi tylko
-SPM i TS. Raportu syntetycznego (SYR) nie używamy, bo suplement wymienia tylko WGI–WGIII. Oceniamy wobec AR6, a nie
-wobec własnej wiedzy. `sprzeczne` i `zgodne` wymagają wskazania rozstrzygającego fragmentu (pole `ar6`); gdy żaden
-fragment SPM ani TS nie rozstrzyga, werdykt to `brak_podstaw`.
+**Źródła w AR6.** Oceniamy tylko wobec streszczeń SPM (*Summary for Policymakers*) i TS (*Technical Summary*) WGI,
+WGII i WGIII: najpierw SPM, potem TS. Rozdziałów (także przez odsyłacze w nawiasach klamrowych, np. `{2.3}`) ani
+raportu syntetycznego (SYR) nie używamy, bo model widzi tylko SPM i TS. Fragment wskazujemy numerem ustalenia (np.
+`WGIII TS.5.1`). Numer strony w polu `ar6` modelu to strona w pliku PDF danej części, a nie numer drukowany (zgadzają
+się tylko w SPM WGI).
 
 **Data.** WGI ukazał się 9.08.2021, WGII 28.02.2022, WGIII 4.04.2022, czyli przed początkiem okresu, więc AR6 jest
 punktem odniesienia dla wszystkich wypowiedzi.
 
-## 7. Etykieta wypowiedzi i miary
+## 7. Miary
 
-`sprzeczna = 1`, gdy wypowiedź ma `klimat = 1` i co najmniej jedno twierdzenie `sprzeczne`. Wypowiedź o klimacie bez
-takiego twierdzenia zostaje w mianowniku z `sprzeczna = 0`.
-
-Jakość modelu liczymy na poziomie wypowiedzi:
+Jakość modelu liczymy na poziomie wypowiedzi, z wagami warstw, osobno dla prawicy i reszty:
 
 | porównanie | miara | pole | podzbiór |
 |---|---|---|---|
@@ -199,38 +196,15 @@ Jakość modelu liczymy na poziomie wypowiedzi:
 | model i gold: werdykt | TPR, TNR, F1 | `sprzeczna` | `klimat = 1` w goldzie i u modelu |
 | model i gold: etykieta końcowa | TPR, TNR, F1 | `klimat = 1` i `sprzeczna = 1` | cała próba |
 
-TPR/TNR/F1 pochodzą z kroku 5 suplementu. Miary modelu liczymy z wagami warstw, osobno dla prawicy i reszty.
-Twierdzenia służą do uzasadnienia etykiety i analizy błędów; miar na nich nie liczymy, bo anotator i model wypisują
-różne listy. Zgodności anotatorów (kappa) nie liczymy, bo każdą wypowiedź oznaczyła jedna osoba (sekcja 8);
-na wypadek podwójnej anotacji części próby `gold_standard.py` ma polecenia `podproba` i `zgodnosc`.
-
-**Decyzja: wypowiedzi w mianowniku** (opcja a niżej), jak w suplemencie i w repo. Poniżej zostawiamy argumenty, które
-rozważaliśmy. Twierdzenia są potrzebne w obu wariantach: przez
-nie suplement definiuje wypowiedź sprzeczną (uwaga 3), z AR6 porównuje się konkretną tezę, a narzędzie wyszukujące
-dostaje ją jako zapytanie.
-
-- Za twierdzeniami: przy wypowiedziach wynik zależy od długości, bo więcej twierdzeń daje większą szansę na sprzeczne.
-  Wypowiedzi posłów z trafieniem słownika klimatu mają medianę 184 słów u prawicy i 346 u reszty; ponad 500 słów ma
-  12% i 37%. CARDS i fact-checking też pracują na pojedynczych twierdzeniach.
-- Przeciw: mianownik zależy od ekstrakcji, a listy anotatora i modelu się różnią. Miary trzeba by liczyć na twierdzeniach, ze wspólną listą albo dopasowaniem po cytacie,
-  i ustalić reguły dla powtórzeń oraz dla `brak_podstaw`.
-
-Kierunek efektu znamy: przy wypowiedziach długie wypowiedzi reszty częściej dostaną `sprzeczna = 1` (przeciw
-hipotezie), przy twierdzeniach liczne twierdzenia `zgodne` reszty powiększą jej mianownik (na korzyść hipotezy).
-Wielkości nie znamy. Jedyne dane z okresu to próba LLM z notatnika 03 (174 wypowiedzi prawicy i 230 reszty z filtra
-wszystkich tematów, starszy prompt): twierdzenie naukowe o klimacie model potwierdził w 6 i 11 wypowiedziach.
-
-| opcja | co to oznacza |
-|---|---|
-| a) wypowiedź | jak w suplemencie; twierdzenia są drogą do etykiety wypowiedzi |
-| b) twierdzenie | zmiana hipotezy i definicji odsetka w suplemencie; gold porównywany na twierdzeniach |
-| c) wypowiedź, twierdzenia jako wariant | suplement bez zmian; w kroku 8 dodatkowo odsetek twierdzeń, bez pełnej walidacji (gold waliduje tylko wypowiedzi) |
+**Długość wypowiedzi.** Mianownikiem są wypowiedzi, więc dłuższa wypowiedź ma większą szansę na twierdzenie sprzeczne.
+Wypowiedzi reszty są dłuższe (wśród wypowiedzi z trafieniem słownika klimatu mediana 346 słów wobec 184 u prawicy; ponad
+500 słów ma 37% wobec 12%), co działa przeciw hipotezie.
 
 ## 8. Gold standard
 
-**Losowanie.** 100 wypowiedzi z populacji (sekcja 1), po 50 na grupę, według suplementu (krok 4). Warstwy to grupa
-× etykieta modelu z pełnego przebiegu pipeline'u (Gemma 4 12B), więc wymagają wcześniejszego przebiegu modelu na całej
-populacji. Wagi = N / n. Próba jest wylosowana (ziarno 0): `data/gold/sample.csv`.
+**Losowanie.** 100 wypowiedzi z populacji, po 50 na grupę. Warstwy to grupa × etykieta modelu z pełnego przebiegu
+pipeline'u (Gemma 4 12B). Wagi = N / n. Próba: `data/gold/sample.csv` (ziarno 0). Próbę wylosowano, gdy Kukiz15 należał
+do reszty, więc liczebności w tabeli odpowiadają tamtemu podziałowi (Kukiz15: 304 wypowiedzi, w tym jedna w próbie).
 
 | warstwa | N | n | waga |
 |---|---|---|---|
@@ -241,108 +215,49 @@ populacji. Wagi = N / n. Próba jest wylosowana (ziarno 0): `data/gold/sample.cs
 | reszta, model: tematyczna i niesprzeczna | 729 | 15 | 48,6 |
 | reszta, model: nietematyczna | 23 072 | 15 | 1 538,1 |
 
-Warstwy „nietematyczna” mają duże wagi, więc oszacowanie tego, co gubi klasyfikator tematyczny, będzie mało precyzyjne.
-Żadna z wypowiedzi cytowanych w codebooku (sekcje 1, 5 i 9) nie trafiła do próby.
-
-**Anotatorzy.** Próbę podzieliło dwóch członków zespołu: Filip Puszko (FP) oznaczył wypowiedzi 1–50, Damian Kwolek
-(DK) wypowiedzi 51–100 (numer `kolejnosc`, kolejność losowa, więc obie części obejmują obie grupy i wszystkie warstwy).
-Pliki: `data/gold/annotations_FP.csv` i `annotations_DK.csv`. Każdą wypowiedź oznaczyła jedna osoba: nie ma części
-wspólnej ani rozstrzygającego, więc zgodności anotatorów nie znamy i zakładamy, że etykiety gold standardu są poprawne
-(suplement, krok 4).
-
-**Bez pilotażu.** Próba jest już wylosowana, więc codebook nie przechodzi pilotażu przed anotacją.
+Warstwy „nietematyczna” mają duże wagi, więc jedna wypowiedź tematyczna przeoczona przez model zmienia mianownik grupy
+o ponad tysiąc wypowiedzi. Żadna z wypowiedzi cytowanych w codebooku nie należy do próby.
 
 **Zasady:**
 - strona do anotacji nie pokazuje etykiet modelu ani warstwy;
 - anotator widzi tylko tekst, bez mówcy, klubu i daty; narzędzie maskuje też nazwiska we wtrąceniach prowadzącego
   („Poseł …:”). Treść może jednak zdradzać klub („Konfederacja wychodzi z tego stanowiska”);
-- przy wątpliwości anotator wybiera etykietę i dodaje komentarz. Wypowiedzi nie odrzucamy (u Coan
-  i in. „unable to decide” wracało do puli, co u nas zawyżyłoby TPR i TNR).
+- przy wątpliwości anotator wybiera etykietę i dodaje komentarz. Wypowiedzi nie odrzucamy, bo odrzucanie trudnych
+  przypadków zawyżyłoby TPR i TNR.
 
 **Ograniczenie.** Anotatorzy znają hipotezę. Ukrycie mówcy i klubu zmniejsza ryzyko, że wpłynie to na oceny, ale go
 nie usuwa.
 
 ## 9. Przykłady z korpusu
 
-Identyfikator to `wypowiedz_id` z `data/processed/korpus_plenarne.parquet`. Wszystkie przykłady pochodzą z okresu
-i populacji z sekcji 1.
+Identyfikator to `wypowiedz_id` z `data/processed/korpus_plenarne.parquet`; wszystkie przykłady pochodzą z populacji.
 
 ### 9.1. `klimat`
 
 | wypowiedź | fragment | `klimat` | dlaczego |
 |---|---|---|---|
-| `10_60_2026-06-17_269` | „Czy osiągnięcie dekarbonizacji w europejskiej polityce klimatycznej, manipulacyjnie nazywanej neutralnością klimatyczną, ma sens?” | 1 | polityka klimatyczna jest przedmiotem całej wypowiedzi |
+| `10_60_2026-06-17_269` | „Czy osiągnięcie dekarbonizacji w europejskiej polityce klimatycznej, manipulacyjnie nazywanej neutralnością klimatyczną, ma sens?” | 1 | polityka klimatyczna jest przedmiotem całej wypowiedzi (emisje świata i UE, sens redukcji) |
 | `10_18_2024-09-25_107` | „Naukowcy są tutaj jednoznaczni, że nie chodzi o spory na temat klimatu, tylko chodzi o to, jak będą wyglądały zjawiska pogodowe (…). A sytuacja będzie krytyczna, jeśli chodzi o efekty tych zmian klimatycznych.” | 1 | 4,5 tys. słów o powodzi, ale jeden akapit mówi o skutkach zmiany klimatu |
-| `10_10_2024-04-25_124` | „Proponowany przez pana eksperyment na tak dużym obszarze w obliczu obserwowanych zmian klimatycznych jest niezwykle niebezpieczny dla przyszłości lasów w Polsce.” | 0 | zmiana klimatu jako tło; przedmiot: gospodarka leśna |
+| `10_41_2025-09-25_308` | „To także przeciwdziałanie skutkom zmian klimatycznych, które w szczególny sposób oddziałują na obszary rzeczne i podmokłe.” | 1 | jedno zdanie mówi, na co oddziałuje zmiana klimatu; wcześniejsze „W dobie narastających wyzwań ekologicznych, takich jak postępujące zmiany klimatyczne” to samo tło |
+| `10_43_2025-10-16_309` | „ETS 2 podwyższy też drastycznie koszty ogrzewania w naszych domach.” | 1 | skutek instrumentu polityki klimatycznej dla cen |
+| `10_42_2025-10-08_221` | „Wiatraki produkują najdroższy prąd, w dodatku niestabilny i jeszcze niszczą środowisko naturalne.” | 1 | twierdzenie o koszcie i niezawodności źródła energii |
+| `10_10_2024-04-25_124` | „Proponowany przez pana eksperyment na tak dużym obszarze w obliczu obserwowanych zmian klimatycznych jest niezwykle niebezpieczny dla przyszłości lasów w Polsce.” | 0 | zmiana klimatu jako okoliczność; zdanie nie mówi, co robi z lasami; przedmiot: gospodarka leśna |
+| `10_10_2024-04-25_40` | „Wszystkie zmiany dla rolników to jest jakaś kpina, nie ma żadnych zmian w zielonym ładzie dla rolników, to ugorowanie to jest przejście z deszczu pod rynnę, jest to oszukiwanie polskich rolników.” | 0 | Zielony Ład w rolnictwie bez odniesienia do emisji i klimatu |
+| `10_27_2025-01-23_254` | „W związku z nowelizacją dyrektywy w sprawie systemu handlu przydziałami uprawnień do emisji gazów cieplarnianych w Unii do systemu włączono sektory budownictwa mieszkaniowego i transportu drogowego.” | 0 | treść przepisu i procedura (zezwolenia dla dostawców paliw); o skutkach ETS2 mówca nic nie twierdzi |
 
 ### 9.2. Twierdzenia i werdykt
 
-Fragmenty AR6 oznaczone „do wskazania” anotator wskazuje sam w SPM lub TS (sekcja 6).
-
 | wypowiedź | fragment | zapis | werdykt |
 |---|---|---|---|
-| `10_7_2024-03-07_60` | „Zmiany klimatu, jak wiemy, na Ziemi występowały zawsze. Jest pytanie o ich przyczyny i tutaj naukowcy się spierają, jaki rzeczywisty wpływ ma człowiek…” | (a) klimat zmieniał się zawsze; (b) wniosek: nauka nie ustaliła, czy obecna zmiana wynika z działalności człowieka (fakt i wniosek osobno, sekcja 4) | (a) `zgodne`; (b) `sprzeczne` (WGI SPM A.1) |
-| `10_22_2024-11-20_257` | „Pani minister wspomniała tu o konieczności walki z emisją CO2, co się zasadza na przekonaniu, że emisja CO2 powoduje globalne ocieplenie. (…) Nawet przy założeniu, że ta mitologia jest prawdziwa…” | polemika (sekcja 5), stanowisko mówcy: emisja CO2 nie powoduje globalnego ocieplenia | `sprzeczne` (WGI SPM A.1) |
-| `10_27_2025-01-23_218` | „A przyczyna tego wszystkiego to są opłaty ETS, to jest to szaleństwo ideologiczne zielonej energii, te głupoty, że krowy są odpowiedzialne za ocieplenie klimatu.” | wniosek: hodowla bydła nie przyczynia się do ocieplenia. Nie wypisujemy: „opłaty ETS” jako przyczyny cen prądu (koszty polityki, sekcja 4) ani „szaleństwa ideologicznego” (ocena) | `sprzeczne` (metan z rolnictwa, do wskazania) |
+| `10_22_2024-11-20_257` | „Pani minister wspomniała tu o konieczności walki z emisją CO2, co się zasadza na przekonaniu, że emisja CO2 powoduje globalne ocieplenie. (…) Nawet przy założeniu, że ta mitologia jest prawdziwa, problem polega na tym, pani minister, że emisja CO 2 w Unii Europejskiej to jest 8% światowej emisji. W Polsce to ok. 1%. Nawet jak ją zlikwidujemy, to nic to nie zmieni, zwłaszcza że likwidowany w Unii Europejskiej przemysł wysokoemisyjny, na czym tracimy gospodarczo, przenosi się do Chin czy Indii.” | (a) polemika, stanowisko mówcy: emisja CO2 nie powoduje globalnego ocieplenia; (b) UE emituje 8% światowej emisji CO2, Polska 1%; (c) likwidacja emisji w UE nic nie zmieni; (d) przemysł wysokoemisyjny przenosi się z UE do Chin i Indii | (a) `sprzeczne` (WGI SPM A.1); (b) `brak_podstaw` (inny obszar); (c) `sprzeczne` (WGI SPM D.1.1); (d) `brak_podstaw` (gospodarka UE) |
+| `10_27_2025-01-23_218` | „A przyczyna tego wszystkiego to są opłaty ETS, to jest to szaleństwo ideologiczne zielonej energii, te głupoty, że krowy są odpowiedzialne za ocieplenie klimatu.” | (a) opłaty ETS są przyczyną wysokich cen prądu w Polsce; (b) wniosek: hodowla bydła nie przyczynia się do ocieplenia; „szaleństwo ideologiczne” pomijamy (ocena) | (a) `brak_podstaw` (ceny w Polsce); (b) `sprzeczne` (WGIII TS.5.6.1: emisje metanu z rolnictwa rosną, głównie z fermentacji jelitowej przeżuwaczy) |
+| `10_42_2025-10-08_221` | jak w 9.1 | (a) energia z wiatru jest najdroższa; (b) produkcja energii z wiatru jest zmienna; „niszczą środowisko” pomijamy (nie dotyczy klimatu) | (a) `sprzeczne` (WGIII TS.5.1: energia z fotowoltaiki i wiatru jest w wielu regionach tańsza niż z paliw kopalnych); (b) `zgodne` (WGIII TS.5.1: wiatr i fotowoltaika jako źródła zmienne) |
+| `10_11_2024-05-15_88` | „…to w Polsce, szanowni państwo, na lądzie tak dużo wiatrów nie wieje. Realnie wiatraki mają ok. 15% wydajności, czyli jest to droga i niezbyt efektywna inwestycja.” | energia z wiatraków na lądzie jest w Polsce droga, bo wiatr wieje za słabo | `brak_podstaw` (Polska) |
+| `10_5_2024-02-07_117` | „…brednia klimatyzmu (…) jednak wali się (…) bo jednak deszcz pada, tak jak padał, śnieg pada, tak jak padał, mniej więcej, w pewnym tam przedziale.” | (a) suma opadów w Polsce się nie zmienia; (b) wniosek: zmiana klimatu nie zachodzi | (a) `sprzeczne` (WGI TS.4.3.2.5: średnie roczne opady w Europie Zachodniej i Środkowej wzrosły od początku XX w.); (b) `sprzeczne` (WGI SPM A.1) |
 
-### 9.3. Przypadki do dyskusji
-
-Bez etykiet, żeby nie sugerować odpowiedzi. Służą do przećwiczenia reguł przed anotacją (`klimat`, twierdzenia,
-werdykt); nie wchodzą do gold standardu.
-
-| | wypowiedź | fragment | pytanie |
-|---|---|---|---|
-| D1 | `10_41_2025-09-25_308` | „W dobie narastających wyzwań ekologicznych, takich jak postępujące zmiany klimatyczne (…) To także przeciwdziałanie skutkom zmian klimatycznych, które w szczególny sposób oddziałują na obszary rzeczne i podmokłe.” | park narodowy: klimat jako wątek czy tło? |
-| D2 | `10_5_2024-02-07_117` | „…brednia klimatyzmu (…) jednak wali się (…) bo jednak deszcz pada, tak jak padał, śnieg pada, tak jak padał, mniej więcej, w pewnym tam przedziale.” | fakt o opadach w Polsce jako argument przeciw ociepleniu: jaki wniosek zapisać? |
-| D3 | `10_22_2024-11-20_257` | „Nawet jak ją zlikwidujemy, to nic to nie zmieni, zwłaszcza że likwidowany w Unii Europejskiej przemysł wysokoemisyjny (…) przenosi się do Chin czy Indii.” | prognoza skuteczności i ucieczka emisji: czy WGIII daje podstawę do werdyktu? |
-
-## 10. Decyzje i alternatywy
-
-| punkt | decyzja | rozważane alternatywy |
-|---|---|---|
-| wypowiedź o klimacie | wątek, razem z polityką klimatyczną | twierdzenie ocenialne wobec AR6; dowolna wzmianka |
-| pogoda, klęski, smog | tylko z odniesieniem do zmiany klimatu, także zaprzeczającym | ekstrema i klęski zawsze; dodatkowo smog |
-| polityka klimatyczna | jak w suplemencie: koszty i tempo polityki nie są twierdzeniami; skuteczność i wykonalność działań oceniane wobec WGIII | wszystkie fakty i prognozy wobec WGIII; wyłączyć całą politykę; osobna kategoria poza licznikiem |
-| znaczenie | dosłowne fakty i wniosek mówcy | tylko dosłowne; osobne pole wniosku |
-| fakt i wniosek | dwa twierdzenia: fakt i wniosek osobno (sekcja 4) | jedno twierdzenie (wniosek z faktem jako uzasadnieniem) |
-| kierunek | oba kierunki (umniejszanie i wyolbrzymianie), jak w suplemencie | tylko umniejszanie; oba z polem kierunku |
-| mianownik | wypowiedzi o klimacie, jak w suplemencie (sekcja 7) | twierdzenia; wypowiedzi z twierdzeniami jako wariantem |
-| poziom porównań | wypowiedź (`klimat`, `sprzeczna`) | wspólna lista twierdzeń; dopasowanie po cytacie |
-| atrybucja | sama zasada stanowiska mówcy w parafrazie, bez osobnego pola (sekcja 5) | pole z czterema wartościami; pole uproszczone (`wlasne` / `polemika` / `neutralny`) |
-| CARDS | tylko literatura (reguła wniosku mówcy, sekcja 4) | ściąga z podkategoriami; pole `cards` |
-| warstwy | grupa × etykieta modelu, 20 / 15 / 15 na grupę (suplement) | grupa × filtr, 100 + 25 na grupę; dwie osobne próby |
-| ślepota | bez mówcy, klubu i daty | wszystko widoczne; bez mówcy, ale z poprzednią wypowiedzią |
-| `brak_podstaw` | jedna etykieta | „AR6 się tym nie zajmuje” i „nie znaleziono” osobno |
-| pewność AR6 | bez progu: liczy się każde ustalenie AR6 (pytanie 7) | od *likely* / *medium confidence*; od *very likely* / *high confidence* |
-| źródła AR6 | SPM → TS, bez rozdziałów i bez SYR (jak w modelu) | tylko SPM; rozdziały przez odsyłacze; dodatkowo SYR |
-| dane krajowe | twierdzenia, zwykle `brak_podstaw` | wyłączyć |
-| trudne przypadki | komentarz anotatora | flaga `trudny` z komentarzem |
-| anotatorzy | dwie osoby z zespołu, każda połowa próby, bez części wspólnej i bez pilotażu (sekcja 8) | jedna osoba całą próbę; część wspólna do kappy; dwie osoby i rozstrzygający, pilotaż 1 × 20; szkolenie i test kwalifikacyjny (jak u Coan i in.) |
-| ministrowie-posłowie | w populacji | wyłączyć |
-| Republikanie, Kukiz15 | reszta | wariant odporności z nimi w prawicy |
-| zmiany klubów | klub w dniu wypowiedzi (także okresy bez klubu) | klub z dnia pobrania; klub, do którego poseł trafił później |
-
-## 11. Pytania do zespołu
-
-1. ~~**Lead:** co jest mianownikiem?~~ Rozstrzygnięte: wypowiedzi o klimacie (sekcja 7).
-2. **Lead:** zostajemy przy klubie w dniu wypowiedzi (sekcja 1); czy dopisać skutki zmian klubów jako osobne ograniczenie?
-3. ~~Kto oznacza gold?~~ Rozstrzygnięte: FP i DK, po połowie próby (sekcja 8).
-4. ~~Atrybucja (sekcja 5): osobne pole czy sama zasada w parafrazie?~~ Rozstrzygnięte: sama zasada.
-5. ~~Wniosek mówcy (sekcja 4): fakt i wniosek zapisujemy jako dwa twierdzenia czy jako jedno?~~ Rozstrzygnięte: dwa.
-6. Uwagi do decyzji z sekcji 10.
-7. Czy warto dodać próg pewności AR6? AR6 opisuje pewność ustaleń (*likely*, *very likely*, *medium* / *high
-   confidence*). Teraz liczy się każde ustalenie, więc twierdzenie sprzeczne z ustaleniem o niskiej pewności też
-   jest `sprzeczne`. Próg (np. od *likely* albo *medium confidence*) ograniczyłby `sprzeczne` i `zgodne` do ustaleń,
-   które AR6 uznaje za co najmniej prawdopodobne.
-
-## 12. Literatura
+## 10. Literatura
 
 - Coan, T. G., Boussalis, C., Cook, J., Nanko, M. O. (2021). Computer-assisted classification of contrarian claims about
   climate change. *Scientific Reports*, 11, 22320.
-- Rojas, C., Algra-Maschio, F., Andrejevic, M., Coan, T., Cook, J., Li, Y.-F. (2024). Hierarchical machine learning
-  models can identify stimuli of climate change misinformation on social media. *Communications Earth & Environment*,
-  5 (preprint: arXiv 2404.15673, *Augmented CARDS*).
-- Hassan, N., Arslan, F., Li, C., Tremayne, M. (2017). Toward Automated Fact-Checking: Detecting Check-worthy Factual
-  Claims by ClaimBuster. *KDD '17*.
 - Halterman, A., Keith, K. A. (2025). Codebook LLMs: Evaluating LLMs as Measurement Tools for Political Science Concepts.
 - IPCC (2021, 2022). *Sixth Assessment Report*, WGI, WGII, WGIII.
