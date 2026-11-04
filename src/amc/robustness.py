@@ -1,19 +1,19 @@
 """Step 8: robustness of the step 6 test (logit of the model label on prawica, SE clustered by speaker) in variants.
 
 Plan variants (presentation, slide 12; supplement, step 8) decide whether the result is robust:
-  bez_konfederacji   statements of Konfederacja and Konfederacja_KP removed (prawica = PiS, RozwojPlus)
-  bez_pis            statements of PiS and RozwojPlus removed (prawica = Konfederacja, Konfederacja_KP)
+  bez_konfederacji   statements of Konfederacja and Konfederacja_KP removed (prawica = PiS, RozwojPlus, Kukiz15)
+  bez_pis            statements of PiS and RozwojPlus removed (prawica = Konfederacja, Konfederacja_KP, Kukiz15)
   pierwsza_polowa    statements before the midpoint of the study period
   druga_polowa       statements from the midpoint on
 A removed club leaves the sample (it does not move to reszta). RozwojPlus goes with PiS and Konfederacja_KP with
-Konfederacja, as in the blocks of amc/speakers.py. The midpoint is the calendar middle of
-population.STUDY_PERIOD.
+Konfederacja, as in the blocks of amc/speakers.py; Kukiz15 stays in prawica in both. The midpoint is the calendar
+middle of population.STUDY_PERIOD.
 
 Robust = in every plan variant beta1 has the sign of the main result and beta1 / beta1_main is in [0.5; 2]. A variant
 without an estimate (separation) fails the criterion.
 
 Extensions answer likely objections but do not enter the criterion: only MPs speaking as MPs (rola == "poseł", without
-ministers), a broad right (plus Republikanie and Kukiz15), a statement contradicting only with >= 2 contradicting
+ministers), a broad right (plus Republikanie), a statement contradicting only with >= 2 contradicting
 claims, and leave-one-speaker-out.
 """
 import numpy as np
@@ -24,8 +24,8 @@ from .population import RIGHT_CLUBS, STUDY_PERIOD
 
 KONFEDERACJA = ("Konfederacja", "Konfederacja_KP")
 PIS = ("PiS", "RozwojPlus")
-assert set(KONFEDERACJA) | set(PIS) == set(RIGHT_CLUBS)
-BROAD_RIGHT = ("Republikanie", "Kukiz15")
+assert set(KONFEDERACJA) | set(PIS) | {"Kukiz15"} == set(RIGHT_CLUBS)
+BROAD_RIGHT = ("Republikanie",)
 MIDPOINT = (STUDY_PERIOD[0] + (STUDY_PERIOD[1] - STUDY_PERIOD[0]) / 2).normalize()
 LOW, HIGH = 0.5, 2.0
 Z95 = 1.959963984540054
@@ -62,7 +62,7 @@ PLAN = {
 }
 EXTENSIONS = {
     "tylko_poslowie": ("tylko rola „poseł” (bez ministrów)", lambda l: l[l["rola"] == "poseł"]),
-    "prawica_szeroka": ("prawica + Republikanie i Kukiz15", _broad_right),
+    "prawica_szeroka": ("prawica + Republikanie", _broad_right),
     "dwa_twierdzenia": ("sprzeczna = co najmniej 2 twierdzenia sprzeczne", _two_claims),
 }
 
