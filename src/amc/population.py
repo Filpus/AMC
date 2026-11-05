@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 STUDY_PERIOD = (pd.Timestamp("2023-11-13"), pd.Timestamp("2026-09-15"))
-RIGHT_CLUBS = ("PiS", "RozwojPlus", "Kukiz15", "Konfederacja", "Konfederacja_KP")
+RIGHT_CLUBS = ("PiS", "RozwojPlus", "Kukiz15", "Republikanie", "Konfederacja", "Konfederacja_KP")
 
 
 def select(df):

@@ -1,7 +1,7 @@
 # AMC — wypowiedzi sejmowe a konsensus naukowy
 
 **Pytanie badawcze:** czy w okresie 13.11.2023–15.09.2026 odsetek wypowiedzi plenarnych posłów prawicy (klub w dniu
-wypowiedzi: PiS, RozwojPlus, Kukiz15, Konfederacja, Konfederacja_KP) sprzecznych z konsensusem naukowym dotyczącym klimatu
+wypowiedzi: PiS, RozwojPlus, Kukiz15, Republikanie, Konfederacja, Konfederacja_KP) sprzecznych z konsensusem naukowym dotyczącym klimatu
 (raporty AR6 IPCC) był wyższy niż wśród pozostałych posłów? Mianownik to wypowiedzi o klimacie w danej grupie.
 
 Lokalny LLM (Ollama, domyślnie Gemma 4 12B) oznacza wypowiedzi o klimacie, wypisuje z nich twierdzenia i ocenia je

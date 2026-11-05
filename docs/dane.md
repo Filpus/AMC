@@ -114,9 +114,9 @@ Tylko w `korpus_komisje`: `komisja` (kod), `komisje` (wszystkie kody, gdy posied
 6. **Kadencja X trwa** — dane kończą się na dniu pobrania (październik 2026); porównując kadencje, normalizuj
    (np. na 1000 wypowiedzi), a nie licz wartości bezwzględnych.
 7. **Grupy z hipotezy** (prawica i reszta, [README](../README.md)): prawica to wypowiedzi posłów, których `klub` w dniu
-   wypowiedzi to PiS, RozwojPlus, Kukiz15, Konfederacja albo Konfederacja_KP; reszta to pozostali posłowie. Korpus nie
-   ma jeszcze takiej kolumny. W X kadencji odpowiada to `blok` równemu „PiS”, „Kukiz'15” albo „Konfederacja”. Klub
-   Republikanie (blok „Inne / niez.”) należy do reszty. Ministrowie będący posłami mają `rola = "rząd"`, więc filtr `rola == "poseł"`
+   wypowiedzi to PiS, RozwojPlus, Kukiz15, Republikanie, Konfederacja albo Konfederacja_KP; reszta to pozostali posłowie. Korpus nie
+   ma jeszcze takiej kolumny. W X kadencji odpowiada to `blok` równemu „PiS”, „Kukiz'15” albo „Konfederacja” oraz klubowi
+   Republikanie (blok „Inne / niez.”). Ministrowie będący posłami mają `rola = "rząd"`, więc filtr `rola == "poseł"`
    ich pomija.
 
 ---

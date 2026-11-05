@@ -9,7 +9,7 @@ def labels(seed=0, n=1200):
     """Invented topical statements: prawica contradicts more often (0.10 vs 0.04), 60 speakers, the whole period."""
     rng = np.random.default_rng(seed)
     clubs = rng.choice(["PiS", "RozwojPlus", "Konfederacja", "Konfederacja_KP", "KO", "Lewica", "Republikanie"], n)
-    right = np.isin(clubs, ["PiS", "RozwojPlus", "Konfederacja", "Konfederacja_KP"])
+    right = np.isin(clubs, R.RIGHT_CLUBS)
     days = rng.integers(0, (R.STUDY_PERIOD[1] - R.STUDY_PERIOD[0]).days + 1, n)
     contradicting = rng.random(n) < np.where(right, 0.10, 0.04)
     return pd.DataFrame({
@@ -31,15 +31,13 @@ def test_club_variants_remove_clubs_and_keep_groups():
     d = labels()
     no_konf = R.PLAN["bez_konfederacji"][1](d)
     no_pis = R.PLAN["bez_pis"][1](d)
-    assert not no_konf["klub"].isin(R.KONFEDERACJA).any() and set(no_konf.loc[no_konf["grupa"] == "prawica", "klub"]) == set(R.PIS)
-    assert not no_pis["klub"].isin(R.PIS).any() and set(no_pis.loc[no_pis["grupa"] == "prawica", "klub"]) == set(R.KONFEDERACJA)
+    assert not no_konf["klub"].isin(R.KONFEDERACJA).any() and set(no_konf.loc[no_konf["grupa"] == "prawica", "klub"]) == set(R.PIS) | {"Republikanie"}
+    assert not no_pis["klub"].isin(R.PIS).any() and set(no_pis.loc[no_pis["grupa"] == "prawica", "klub"]) == set(R.KONFEDERACJA) | {"Republikanie"}
     assert (no_konf["grupa"] == "reszta").sum() == (d["grupa"] == "reszta").sum()
 
 
 def test_extensions():
     d = labels()
-    broad = R.EXTENSIONS["prawica_szeroka"][1](d)
-    assert (broad.loc[broad["klub"] == "Republikanie", "grupa"] == "prawica").all()
     two = R.EXTENSIONS["dwa_twierdzenia"][1](d)
     assert two["sprzeczna"].sum() == (d["n_sprzecznych"] >= 2).sum()
     assert (R.EXTENSIONS["tylko_poslowie"][1](d)["rola"] == "poseł").all()

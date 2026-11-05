@@ -11,8 +11,8 @@ pozytywne i negatywne, przykłady) według Halterman, Keith (2025).
 | jednostka | merytoryczne wystąpienie jednego mówcy na posiedzeniu plenarnym (bez prowadzącego obrady) |
 | mianownik | wypowiedzi o klimacie (`klimat = 1`) |
 | okres | 13.11.2023–15.09.2026 (X kadencja) |
-| populacja | wypowiedzi posłów, w tym ministrów-posłów: 43 991 (prawica 20 466, reszta 23 525) |
-| grupy | **prawica**: klub w dniu wypowiedzi to PiS, RozwojPlus, Kukiz15, Konfederacja albo Konfederacja_KP; **reszta**: pozostali, w tym Republikanie i niezrzeszeni |
+| populacja | wypowiedzi posłów, w tym ministrów-posłów: 43 991 (prawica 21 192, reszta 22 799) |
+| grupy | **prawica**: klub w dniu wypowiedzi to PiS, RozwojPlus, Kukiz15, Republikanie, Konfederacja albo Konfederacja_KP; **reszta**: pozostali, w tym niezrzeszeni |
 | źródło konsensusu | AR6 IPCC: WGI, WGII, WGIII (SPM i TS) |
 
 ## 2. Przebieg anotacji
@@ -203,8 +203,9 @@ Wypowiedzi reszty są dłuższe (wśród wypowiedzi z trafieniem słownika klima
 ## 8. Gold standard
 
 **Losowanie.** 100 wypowiedzi z populacji, po 50 na grupę. Warstwy to grupa × etykieta modelu z pełnego przebiegu
-pipeline'u (Gemma 4 12B). Wagi = N / n. Próba: `data/gold/sample.csv` (ziarno 0). Próbę wylosowano, gdy Kukiz15 należał
-do reszty, więc liczebności w tabeli odpowiadają tamtemu podziałowi (Kukiz15: 304 wypowiedzi, w tym jedna w próbie).
+pipeline'u (Gemma 4 12B). Wagi = N / n. Próba: `data/gold/sample.csv` (ziarno 0). Próbę wylosowano, gdy Kukiz15 i Republikanie
+należeli do reszty, więc liczebności w tabeli odpowiadają tamtemu podziałowi (Kukiz15: 304 wypowiedzi, w tym jedna
+w próbie; Republikanie: 726 wypowiedzi, w tym dwie w próbie).
 
 | warstwa | N | n | waga |
 |---|---|---|---|

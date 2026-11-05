@@ -5,7 +5,7 @@ from amc import population
 
 def statements(n_right_climate, n_right_other, n_rest_climate, n_rest_other, date="2024-05-01"):
     clubs = (["PiS"] * n_right_climate + ["Konfederacja_KP"] * n_right_other + ["KO"] * n_rest_climate
-             + ["Republikanie"] * n_rest_other)
+             + ["Lewica"] * n_rest_other)
     climate = [1] * n_right_climate + [0] * n_right_other + [1] * n_rest_climate + [0] * n_rest_other
     n = len(clubs)
     return pd.DataFrame({"wypowiedz_id": [f"10_1_{date}_{i}" for i in range(n)], "data": pd.to_datetime([date] * n),
