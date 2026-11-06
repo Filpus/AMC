@@ -20,3 +20,4 @@ articles/
 
 # AR6: PDF-y, fragmenty i embeddingi (prawa IPCC; odtwarzalne: python src/build_ar6.py)
 data/ar6/
+.venv

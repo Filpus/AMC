@@ -1,0 +1,103 @@
+kolejnosc,grupa,warstwa,waga,wypowiedz_id,tematyczna,sprzeczna,koncowa,komentarz,anotator,tem_glosy,sprz_glosy,n,tematyczna_llm,sprzeczna_llm,jednomyslnie,niska_pewnosc,etykieta
+1,prawica,2,55.2,10_11_2024-05-08_134,0.0,0,0.0,,FP,0,0,1,0,0,True,1,0
+2,reszta,3,1538.1333333333334,10_36_2025-06-11_274,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+3,prawica,1,3.0,10_26_2025-01-09_139,0.0,0,0.0,Nie klimat,FP,0,0,1,0,0,True,0,0
+4,reszta,1,1.4,10_22_2024-11-27_91,1.0,1,1.0,,FP,1,1,1,1,1,True,1,1
+5,reszta,2,48.6,10_1_2023-12-06_19,0.0,0,0.0,O gospodarce,FP,1,0,1,1,0,True,1,0
+6,reszta,3,1538.1333333333334,10_16_2024-07-24_252,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+7,prawica,1,3.0,10_22_2024-11-27_98,1.0,1,1.0,Liczby bez podstaw ale zdanie o wpływie jest sprzeczne,FP,1,1,1,1,1,True,0,1
+8,reszta,2,48.6,10_62_2026-07-16_240,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+9,reszta,1,1.4,10_55_2026-04-16_30,0.0,0,0.0,,FP,1,0,1,1,0,True,0,0
+10,reszta,3,1538.1333333333334,10_34_2025-05-08_217,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+11,reszta,1,1.4,10_10_2024-04-26_103,1.0,0,0.0,,FP,1,0,1,1,0,True,0,0
+12,reszta,3,1538.1333333333334,10_26_2025-01-08_107,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+13,reszta,2,48.6,10_26_2025-01-08_7,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+14,prawica,1,3.0,10_22_2024-11-27_151,0.0,0,0.0,,FP,1,0,1,1,0,True,1,0
+15,prawica,1,3.0,10_42_2025-10-08_216,1.0,1,1.0,"Raprot stwierdza że koszty energi odnawialnej są tańsze  „now cheaper than electricity from fossil sources in many regions”, s. 69, Według raportu dywersyfikacja wytwarzania (wiatr, słońce, mała hydroenergetyka) razem z magazynowaniem i zarządzaniem popytem może zwiększać niezawodność dostaw energii („increase energy reliability”, s. 44 i 120). Raport wskazuje też, że magazyny bateryjne na dużą skalę są coraz bardziej opłacalne (s. 69).",FP,1,1,1,1,1,True,1,1
+16,prawica,2,55.2,10_28_2025-02-05_27,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+17,prawica,2,55.2,10_26_2025-01-08_201,0.0,0,0.0,,FP,1,0,1,1,0,True,1,0
+18,prawica,2,55.2,10_28_2025-02-05_15,0.0,0,0.0,,FP,1,0,1,1,0,True,0,0
+19,prawica,2,55.2,10_26_2025-01-08_6,0.0,0,0.0,,FP,1,0,1,1,0,True,1,0
+20,prawica,1,3.0,10_36_2025-06-03_81,1.0,1,1.0,"s. 62, Według raportu średni poziom mórz podniósł się o ok. 0,20 m w latach 1901–2018. Tempo tego wzrostu przyspiesza: wynosiło 1,3 mm rocznie w latach 1901–1971, 1,9 mm rocznie w latach 1971–2006 i 3,7 mm rocznie w latach 2006–2018. Główną przyczyną jest bardzo prawdopodobnie działalność człowieka (s. 21 i 62).",FP,1,1,1,1,1,True,0,1
+21,prawica,3,1284.9333333333334,10_41_2025-09-24_361,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+22,reszta,1,1.4,10_18_2024-10-01_16,0.0,0,0.0,,FP,1,0,1,1,0,True,0,0
+23,prawica,1,3.0,10_8_2024-03-20_61,1.0,1,1.0,"Z raportu nie wynika teza, że polityka klimatyczna nie wpływa na klimat. Raport podaje, że polityki redukcji emisji pozwoliły już uniknąć kilku Gt CO2-eq emisji rocznie (s. 26).",FP,1,0,1,1,0,True,1,1
+24,reszta,2,48.6,10_6_2024-02-22_106,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+25,prawica,3,1284.9333333333334,10_35_2025-05-20_278,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+26,prawica,3,1284.9333333333334,10_13_2024-06-13_117,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+27,prawica,1,3.0,10_18_2024-09-26_287,1.0,1,1.0,"Raport stwierdza, że działalność człowieka w sposób jednoznaczny („unequivocally”) spowodowała globalne ocieplenie (s. 20 w pliku PDF). Opisuje też powszechne negatywne skutki zmian klimatu dla przyrody i ludzi (s. 21–22) Według raportu koszty energii wiatrowej i słonecznej mocno spadły, a dywersyfikacja źródeł razem z magazynowaniem może zwiększać niezawodność dostaw (s. 44, 69 i 120",FP,1,0,1,1,0,True,1,1
+28,reszta,3,1538.1333333333334,10_24_2024-12-06_71,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+29,reszta,2,48.6,10_13_2024-06-13_6,0.0,0,0.0,,FP,1,0,1,1,0,True,0,0
+30,reszta,2,48.6,10_25_2024-12-18_14,1.0,0,0.0,,FP,1,0,1,1,0,True,1,0
+31,reszta,1,1.4,10_22_2024-11-21_225,0.0,0,0.0,,FP,0,0,1,0,0,True,1,0
+32,reszta,2,48.6,10_63_2026-07-29_239,1.0,0,0.0,,FP,1,0,1,1,0,True,0,0
+33,reszta,3,1538.1333333333334,10_45_2025-11-21_149,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+34,reszta,1,1.4,10_26_2025-01-08_205,0.0,0,0.0,,FP,1,0,1,1,0,True,0,0
+35,reszta,1,1.4,10_28_2025-02-05_20,1.0,0,0.0,,FP,1,0,1,1,0,True,0,0
+36,prawica,2,55.2,10_29_2025-02-21_94,1.0,1,1.0,,FP,1,0,1,1,0,True,1,1
+37,prawica,1,3.0,10_27_2025-01-22_106,1.0,1,1.0,"Ocieplenie zależy od łącznej ilości wyemitowanego CO2. Każde 1000 Gt CO2 podnosi temperaturę o ok. 0,45°C, a wartość ta mieści się prawdopodobnie w przedziale 0,27–0,63°C (s. 35 i 98).",FP,1,1,1,1,1,True,0,1
+38,reszta,1,1.4,10_55_2026-04-14_49,0.0,0,0.0,,FP,0,0,1,0,0,True,1,0
+39,reszta,1,1.4,10_58_2026-05-29_31,1.0,0,0.0,Bez podstaw,FP,1,0,1,1,0,True,0,0
+40,reszta,2,48.6,10_25_2024-12-19_91,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+41,prawica,1,3.0,10_26_2025-01-08_196,0.0,0,0.0,,FP,1,0,1,1,0,True,1,0
+42,reszta,1,1.4,10_33_2025-04-24_204,1.0,0,0.0,,FP,1,0,1,1,0,True,0,0
+43,prawica,3,1284.9333333333334,10_61_2026-07-02_265,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+44,prawica,3,1284.9333333333334,10_38_2025-07-10_109,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+45,prawica,1,3.0,10_15_2024-07-11_170,0.0,0,0.0,,FP,0,0,1,0,0,True,1,0
+46,prawica,1,3.0,10_11_2024-05-09_162,1.0,1,1.0,"Lądy i oceany pochłaniają co roku ok. 56% CO2 emitowanego przez człowieka. Mimo to stężenie CO2 w powietrzu ciągle rośnie i według raportu jest najwyższe od co najmniej 2 mln lat. Raport uznaje za jednoznaczne, że ten wzrost wynika z działalności człowieka (s. 58 w pliku PDF).
+Przy rosnących emisjach naturalne pochłaniacze, czyli lądy i oceany, będą coraz słabiej spowalniać wzrost stężenia CO2 (s. 98).
+Każda tona CO2 przyczynia się do ocieplenia (s. 99).",FP,1,1,1,1,1,True,0,1
+47,prawica,1,3.0,10_52_2026-02-26_31,0.0,0,0.0,,FP,1,0,1,1,0,True,1,0
+48,prawica,3,1284.9333333333334,10_32_2025-04-02_60,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+49,prawica,3,1284.9333333333334,10_36_2025-06-03_50,0.0,0,0.0,,FP,0,0,1,0,0,True,0,0
+50,prawica,1,3.0,10_40_2025-09-12_260,1.0,1,1.0,,FP,1,1,1,1,1,True,0,1
+51,reszta,3,1538.1333333333334,10_53_2026-03-11_215,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+52,reszta,1,1.4,10_53_2026-03-11_321,1.0,0,0.0,,DK,1,0,1,1,0,True,0,0
+53,prawica,1,3.0,10_2_2024-01-17_2,1.0,0,0.0,,DK,1,0,1,1,0,True,1,0
+54,prawica,2,55.2,10_26_2025-01-08_3,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+55,prawica,2,55.2,10_22_2024-11-20_246,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+56,reszta,1,1.4,10_5_2024-02-09_12,1.0,0,0.0,,DK,0,0,1,0,0,True,1,0
+57,prawica,1,3.0,10_53_2026-03-11_304,1.0,0,0.0,,DK,1,0,1,1,0,True,0,0
+58,prawica,3,1284.9333333333334,10_17_2024-09-12_82,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+59,prawica,2,55.2,10_10_2024-04-26_160,1.0,1,1.0,,DK,1,0,1,1,0,True,1,1
+60,reszta,1,1.4,10_48_2025-12-18_97,0.0,0,0.0,,DK,1,0,1,1,0,True,1,0
+61,prawica,1,3.0,10_7_2024-03-08_51,1.0,1,1.0,,DK,1,1,1,1,1,True,0,1
+62,prawica,2,55.2,10_48_2025-12-18_102,0.0,0,0.0,,DK,1,0,1,1,0,True,0,0
+63,reszta,1,1.4,10_42_2025-10-08_228,0.0,0,0.0,,DK,0,0,1,0,0,True,1,0
+64,reszta,1,1.4,10_41_2025-09-26_135,1.0,0,0.0,,DK,1,0,1,1,0,True,0,0
+65,reszta,2,48.6,10_43_2025-10-15_272,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+66,reszta,3,1538.1333333333334,10_1_2023-12-21_1,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+67,prawica,2,55.2,10_22_2024-11-22_166,1.0,0,0.0,,DK,1,0,1,1,0,True,1,0
+68,reszta,2,48.6,10_8_2024-03-20_68,1.0,0,0.0,,DK,1,0,1,1,0,True,1,0
+69,prawica,1,3.0,10_2_2024-01-16_72,1.0,0,0.0,,DK,1,0,1,1,0,True,0,0
+70,reszta,3,1538.1333333333334,10_36_2025-06-11_381,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+71,prawica,1,3.0,10_60_2026-06-18_385,1.0,1,1.0,,DK,1,0,1,1,0,True,1,1
+72,prawica,2,55.2,10_12_2024-05-22_161,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+73,prawica,3,1284.9333333333334,10_40_2025-09-12_286,0.0,0,0.0,,DK,0,0,1,0,0,True,1,0
+74,reszta,3,1538.1333333333334,10_54_2026-03-25_149,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+75,reszta,3,1538.1333333333334,10_38_2025-07-09_138,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+76,reszta,1,1.4,10_45_2025-11-19_63,1.0,0,0.0,,DK,1,0,1,1,0,True,0,0
+77,prawica,2,55.2,10_10_2024-04-26_133,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+78,reszta,3,1538.1333333333334,10_19_2024-10-10_240,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+79,reszta,2,48.6,10_50_2026-01-21_105,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+80,reszta,2,48.6,10_22_2024-11-19_143,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+81,prawica,2,55.2,10_33_2025-04-24_211,1.0,0,0.0,,DK,1,0,1,1,0,True,1,0
+82,prawica,3,1284.9333333333334,10_39_2025-08-05_59,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+83,reszta,2,48.6,10_53_2026-03-11_305,1.0,0,0.0,,DK,1,0,1,1,0,True,0,0
+84,prawica,3,1284.9333333333334,10_19_2024-10-10_88,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+85,prawica,3,1284.9333333333334,10_41_2025-09-24_318,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+86,reszta,1,1.4,10_29_2025-02-20_11,0.0,0,0.0,,DK,1,0,1,1,0,True,1,0
+87,reszta,1,1.4,10_7_2024-03-07_46,1.0,0,0.0,,DK,1,0,1,1,0,True,0,0
+88,prawica,1,3.0,10_58_2026-05-28_341,1.0,1,1.0,,DK,1,1,1,1,1,True,0,1
+89,reszta,3,1538.1333333333334,10_32_2025-04-04_32,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+90,reszta,2,48.6,10_44_2025-11-06_225,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+91,reszta,3,1538.1333333333334,10_29_2025-02-21_163,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+92,prawica,3,1284.9333333333334,10_44_2025-11-05_242,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+93,prawica,2,55.2,10_45_2025-11-21_53,0.0,0,0.0,,DK,1,0,1,1,0,True,0,0
+94,reszta,2,48.6,10_18_2024-09-25_113,1.0,1,1.0,,DK,1,0,1,1,0,True,0,1
+95,prawica,1,3.0,10_40_2025-09-10_73,1.0,1,1.0,,DK,1,1,1,1,1,True,1,1
+96,reszta,3,1538.1333333333334,10_64_2026-09-03_145,0.0,0,0.0,,DK,1,0,1,1,0,True,1,0
+97,reszta,1,1.4,10_13_2024-06-14_24,1.0,1,1.0,,DK,1,1,1,1,1,True,0,1
+98,reszta,1,1.4,10_8_2024-03-20_81,0.0,0,0.0,,DK,0,0,1,0,0,True,1,0
+99,prawica,3,1284.9333333333334,10_1_2023-11-22_36,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0
+100,prawica,3,1284.9333333333334,10_58_2026-05-27_181,0.0,0,0.0,,DK,0,0,1,0,0,True,0,0

@@ -1,7 +1,7 @@
 # AMC — wypowiedzi sejmowe a konsensus naukowy
 
 **Pytanie badawcze:** czy w okresie 13.11.2023–15.09.2026 odsetek wypowiedzi plenarnych posłów prawicy (klub w dniu
-wypowiedzi: PiS, RozwojPlus, Konfederacja, Konfederacja_KP) sprzecznych z konsensusem naukowym dotyczącym klimatu
+wypowiedzi: PiS, RozwojPlus, Kukiz15, Republikanie, Konfederacja, Konfederacja_KP) sprzecznych z konsensusem naukowym dotyczącym klimatu
 (raporty AR6 IPCC) był wyższy niż wśród pozostałych posłów? Mianownik to wypowiedzi o klimacie w danej grupie.
 
 Lokalny LLM (Ollama, domyślnie Gemma 4 12B) oznacza wypowiedzi o klimacie, wypisuje z nich twierdzenia i ocenia je
@@ -94,7 +94,8 @@ na goldzie. Warianty wyszukiwania z bge-m3 i Qwen3-Embedding są tylko lokalnie 
 
 ```
 src/             skrypty (nakładki CLI); logika w src/amc/
-prompts/         prompty LLM: topic_v0, claims_v1, verdict_v1, paperqa_v0; etap A: etap_a_v2, weryfikacja_v*
+prompts/         prompty LLM: topic_v0, claims_v1, verdict_v1, paperqa_v0 (zamrożony przebieg); topic_v1, claims_v2,
+                 verdict_v2, paperqa_v1 (według obecnego codebooka); etap A: etap_a_v2, weryfikacja_v*
 data/raw/        odpowiedzi API (poza repo)
 data/interim/    tabele z API (w repo tylko historia klubów)
 data/processed/  korpus (poza repo), wyniki pipeline'u (topic/, claims/, verdicts/, labels/, results/), tabele z EDA

@@ -2,6 +2,11 @@ test,regula,oczekiwane,wypowiedz_id,tekst
 k91_1,codebook 9.1,1,10_60_2026-06-17_269,
 k91_2,codebook 9.1,1,10_18_2024-09-25_107,
 k91_3,codebook 9.1,0,10_10_2024-04-25_124,
+k91_4,codebook 9.1,1,10_41_2025-09-25_308,
+k91_5,codebook 9.1,1,10_43_2025-10-16_309,
+k91_6,codebook 9.1,1,10_42_2025-10-08_221,
+k91_7,codebook 9.1,0,10_10_2024-04-25_40,
+k91_8,codebook 9.1,0,10_27_2025-01-23_254,
 p1,przykład z promptu,1,9_61_2022-09-15_46,
 p2,przykład z promptu,1,9_61_2022-09-15_97,
 p3,przykład z promptu,1,9_23_2020-12-16_110,
@@ -24,3 +29,17 @@ r6a,para: energia bez emisji,0,,"Panie Marszałku! Ceny prądu dla gospodarstw d
 r6b,para: energia bez emisji,1,,"Panie Marszałku! Ceny prądu dla gospodarstw domowych wzrosną od stycznia o 30%, bo za każdą tonę CO2 z elektrowni węglowych płacimy coraz więcej w systemie ETS. Kiedy rząd zacznie szybciej odchodzić od węgla? Dziękuję."
 r7a,para: OZE bez emisji,0,,Wysoka Izbo! Nowe zasady rozliczania prosumentów są niekorzystne dla właścicieli paneli fotowoltaicznych. Okres zwrotu inwestycji wydłuży się z 6 do 10 lat. Proszę o odpowiedź na piśmie. Dziękuję.
 r7b,para: OZE bez emisji,1,,"Wysoka Izbo! Nowe zasady rozliczania prosumentów spowolnią rozwój fotowoltaiki, a to przecież najtańszy sposób na ograniczenie emisji z naszej energetyki. Proszę o odpowiedź na piśmie. Dziękuję."
+r8a,para: odniesienie do innego mówcy,0,,"Panie Marszałku! Pan poseł pytał w swoim wystąpieniu także o politykę klimatyczną rządu. Na to pytanie odpowie na piśmie właściwy minister. Ja skupię się na szpitalach powiatowych, które w tym roku otrzymają o 2 mld zł więcej. Dziękuję."
+r8b,para: odniesienie do innego mówcy,1,,"Panie Marszałku! Pan poseł mówił, że ograniczanie emisji w Polsce nie ma sensu, bo i tak najwięcej emitują Chiny. To nieprawda: każda tona CO2 mniej spowalnia ocieplenie, niezależnie od tego, gdzie ją zaoszczędzimy. Ja skupię się na szpitalach powiatowych, które w tym roku otrzymają o 2 mld zł więcej. Dziękuję."
+r9a,"para: spór o to, kto przyjął politykę",0,,"Wysoka Izbo! To wy podpisaliście pakiet Fit for 55 w Brukseli, a dziś udajecie, że nie macie z tym nic wspólnego. Wyborcy dobrze to pamiętają. Dziękuję."
+r9b,"para: spór o to, kto przyjął politykę",1,,"Wysoka Izbo! To wy podpisaliście pakiet Fit for 55 w Brukseli, a on od 2027 r. obejmie opłatami za emisję węgiel i gaz spalane w domowych kotłach, więc ogrzewanie zdrożeje. Wyborcy dobrze to pamiętają. Dziękuję."
+r10a,para: cel polityki klimatycznej,0,,"Panie Marszałku! Komisja Europejska zaproponowała cel redukcji emisji na 2040 r. Pytam ministra, kiedy rząd przedstawi stanowisko Polski w tej sprawie i czy trafi ono do komisji sejmowej. Dziękuję."
+r10b,para: cel polityki klimatycznej,1,,"Panie Marszałku! Komisja Europejska zaproponowała cel redukcji emisji na 2040 r. Ten cel oznacza wygaszenie polskiej chemii, bo nie ma dziś technologii, które pozwolą jej tak szybko obniżyć emisje. Dziękuję."
+r11a,para: Zielony Ład w rolnictwie,0,,"Wysoka Izbo! Zielony Ład każe rolnikom ugorować 4% gruntów i ograniczać nawozy. Polska wieś na tym traci, a import zboża rośnie. Domagamy się zniesienia tych wymogów. Dziękuję."
+r11b,para: Zielony Ład w rolnictwie,1,,"Wysoka Izbo! Zielony Ład każe rolnikom ugorować 4% gruntów i ograniczać nawozy, żeby rolnictwo emitowało mniej gazów cieplarnianych. Tymczasem te emisje po prostu przeniosą się do krajów, z których importujemy zboże. Domagamy się zniesienia tych wymogów. Dziękuję."
+r12a,para: przepisy o redukcji emisji,0,,"Panie Marszałku! Projekt wdraża unijne rozporządzenie metanowe. Kopalnie będą co kwartał przesyłać raporty z pomiarów do Wyższego Urzędu Górniczego, a za spóźnienie grozi kara do 100 tys. zł. Prosimy o skierowanie projektu do komisji. Dziękuję."
+r12b,para: przepisy o redukcji emisji,1,,"Panie Marszałku! Projekt wdraża unijne rozporządzenie metanowe. Metan z szybów wentylacyjnych silnie ogrzewa atmosferę, więc te przepisy realnie zmniejszą emisje z polskiego górnictwa. Prosimy o skierowanie projektu do komisji. Dziękuję."
+r13a,para: źródła energii,0,,"Wysoka Izbo! Popieramy budowę elektrowni jądrowej na Pomorzu. Pytam ministra, kiedy rząd podpisze umowę z wykonawcą i ilu mieszkańców regionu znajdzie przy tej budowie pracę. Dziękuję."
+r13b,para: źródła energii,1,,"Wysoka Izbo! Popieramy budowę elektrowni jądrowej na Pomorzu, bo wiatr i słońce nie zapewnią stabilnych dostaw prądu zimą. Pytam ministra, kiedy rząd podpisze umowę z wykonawcą. Dziękuję."
+r14a,para: jedno zdanie,0,,"Pani Marszałek! Ustawa o ubezpieczeniach upraw jest potrzebna. Przy dzisiejszym zmieniającym się klimacie rolnicy potrzebują pewności. Proponujemy, by państwo dopłacało 65% składki, a nie 50%. Dziękuję."
+r14b,para: jedno zdanie,1,,"Pani Marszałek! Ustawa o ubezpieczeniach upraw jest potrzebna. Przez ocieplenie sady kwitną wcześniej, a potem przymrozki coraz częściej niszczą zbiory, więc rolnicy potrzebują pewności. Proponujemy, by państwo dopłacało 65% składki, a nie 50%. Dziękuję."
